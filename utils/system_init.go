@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"chat/config"
 	"context"
 	"fmt"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
@@ -18,16 +20,6 @@ var (
 	Red *redis.Client
 )
 
-func InitConfig() {
-	viper.SetConfigName("app")
-	viper.AddConfigPath("config")
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("config  app inited 。。。。")
-}
-
 func InitMySQL() {
 	//自定义日志模板 打印SQL语句
 	newLogger := logger.New(
@@ -39,21 +31,18 @@ func InitMySQL() {
 		},
 	)
 
-	DB, _ = gorm.Open(mysql.Open(viper.GetString("mysql.dns")),
+	DB, _ = gorm.Open(mysql.Open(viper.GetString(config.Mysql.DNS)),
 		&gorm.Config{Logger: newLogger})
-	fmt.Println(" MySQL inited 。。。。")
-	//user := models.UserBasic{}
-	//DB.Find(&user)
-	//fmt.Println(user)
+	hlog.Info(" MySQL init 。。。。")
 }
 
 func InitRedis() {
 	Red = redis.NewClient(&redis.Options{
-		Addr:         viper.GetString("redis.addr"),
-		Password:     viper.GetString("redis.password"),
-		DB:           viper.GetInt("redis.DB"),
-		PoolSize:     viper.GetInt("redis.poolSize"),
-		MinIdleConns: viper.GetInt("redis.minIdleConn"),
+		Addr:         config.Redis.Addr,
+		Password:     config.Redis.Password,
+		DB:           config.Redis.DB,
+		PoolSize:     config.Redis.PoolSize,
+		MinIdleConns: config.Redis.MinIdleConn,
 	})
 }
 

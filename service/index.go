@@ -12,5 +12,7 @@ import (
 // @Router /index [get]
 func GetIndex(ctx context.Context, c *app.RequestContext) {
 	c.HTML(http.StatusOK, "index_index.html", nil)
-
+}
+func ToRegister(ctx context.Context, c *app.RequestContext) {
+	c.HTML(http.StatusOK, "register.html", nil)
 }

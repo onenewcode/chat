@@ -3,6 +3,7 @@ package main
 import (
 	"chat/config"
 	"chat/router"
+	"chat/utils"
 	"github.com/cloudwego/hertz/pkg/app/middlewares/server/recovery"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
@@ -11,6 +12,9 @@ func init() {
 	config.InitConfig()
 }
 func main() {
+	// 初始化一些必要项目
+	utils.InitMySQL()
+
 	h := server.New(
 		server.WithHostPorts(config.Port.Server),
 	)

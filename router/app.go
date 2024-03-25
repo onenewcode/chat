@@ -20,6 +20,12 @@ func Router(h *server.Hertz) {
 	{
 		h.GET("/", service.GetIndex)
 		h.GET("/index", service.GetIndex)
+		h.GET("/toRegister", service.ToRegister)
 	}
-
+	users := h.Group("/user")
+	{
+		users.POST("/getUserList", service.GetUserList)
+		users.POST("/createUser", service.CreateUser)
+		users.POST("/deleteUser", service.DeleteUser)
+	}
 }

@@ -10,11 +10,11 @@ import (
 设置响应
 */
 type H struct {
-	Code  int
-	Msg   string
-	Data  interface{}
-	Rows  interface{}
-	Total interface{}
+	Code  int         `json:"code"`
+	Msg   string      `json:"msg,omitempty"`
+	Data  interface{} `json:"data,omitempty"`
+	Rows  interface{} `json:"rows,omitempty"`
+	Total interface{} `json:"total,omitempty"`
 }
 
 func Resp(w http.ResponseWriter, code int, data interface{}, msg string) {
