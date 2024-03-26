@@ -27,5 +27,6 @@ func Router(h *server.Hertz) {
 		users.POST("/getUserList", service.GetUserList)
 		users.POST("/createUser", service.CreateUser)
 		users.POST("/deleteUser", service.DeleteUser)
+		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd)
 	}
 }

@@ -3,6 +3,7 @@ package service
 import (
 	"chat/common"
 	"chat/models"
+	"chat/models/vo"
 	"chat/utils"
 	"context"
 	"fmt"
@@ -21,7 +22,7 @@ import (
 // @Router /user/getUserList [get]
 func GetUserList(ctx context.Context, c *app.RequestContext) {
 	data := make([]*models.UserBasic, 10)
-	//data = models.GetUserList()
+	data = models.GetUserList()
 	c.JSON(http.StatusOK, common.Result{
 		Code:    0,
 		Message: common.UserNameExist,
@@ -95,6 +96,52 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 	c.JSON(http.StatusOK, common.Result{
 		0,
 		common.UserNamePassWordISEmpty,
+		user,
+	})
+}
+
+// GetUserList
+// @Summary 所有用户
+// @Tags 用户模块
+// @param name query string false "用户名"
+// @param password query string false "密码"
+// @Success 200 {string} json{"code","message"}
+// @Router /user/findUserByNameAndPwd [post]
+func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
+	data := vo.UserLoginVo{}
+	err := c.BindAndValidate(&data)
+	if err != nil {
+		c.JSON(200,
+			common.Result{
+				-1,
+				common.UserNamePassWordISEmpty,
+				data,
+			})
+		return
+	}
+	hlog.Info(data.Name, data.PassWord)
+	user := models.FindUserByName(data.Name)
+	if user.Name == "" {
+		c.JSON(http.StatusOK, common.Result{
+			-1,
+			common.UserISEmpty,
+			data,
+		})
+		return
+	}
+
+	flag := utils.ValidPassword(data.PassWord, user.Salt, user.PassWord)
+	if !flag {
+		c.JSON(http.StatusOK, common.Result{
+			-1,
+			common.UserPasswordError,
+			data,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, common.Result{
+		0,
+		common.UserLoginSucceed,
 		user,
 	})
 }

@@ -9,19 +9,19 @@ import (
 )
 
 type UserBasic struct {
-	gorm.Model    `json:"gorm.Model"`
-	Name          string    `json:"name" vd:"($!='')"`
-	PassWord      string    `json:"passWord" vd:"($!='')"`
-	Phone         string    `json:"phone" vd:"regexp('(^1[3-9]{1}\\d{9}$')"`
-	Email         string    `json:"email" vd:"email"`
+	gorm.Model
+	Name          string    `json:"name" form:"name"  vd:"($!='')"`
+	PassWord      string    `json:"passWord" form:"password"  vd:"($!='')"`
+	Phone         string    `json:"phone,omitempty"`
+	Email         string    `json:"email,omitempty"`
 	Avatar        string    `json:"avatar,omitempty"` //头像
-	Identity      string    `json:"identity,omitempty" vd:"($!='')"`
+	Identity      string    `form:"Identity"  vd:"($!='')"`
 	ClientIp      string    `json:"clientIp,omitempty"`
 	ClientPort    string    `json:"clientPort,omitempty"`
 	Salt          string    `json:"salt,omitempty"`
-	LoginTime     time.Time `json:"loginTime"`
-	HeartbeatTime time.Time `json:"heartbeatTime"`
-	LoginOutTime  time.Time `json:"loginOutTime" gorm:"column:login_out_time" json:"login_out_time" `
+	LoginTime     time.Time `json:"loginTime,omitempty"`
+	HeartbeatTime time.Time `json:"heartbeatTime,omitempty"`
+	LoginOutTime  time.Time `json:"loginOutTime,omitempty" gorm:"column:login_out_time" json:"login_out_time" `
 	IsLogout      bool      `json:"isLogout,omitempty"`
 	DeviceInfo    string    `json:"deviceInfo,omitempty"`
 }
@@ -66,7 +66,7 @@ func FindUserByEmail(email string) *gorm.DB {
 	return utils.DB.Where("email = ?", email).First(&user)
 }
 func CreateUser(user UserBasic) *gorm.DB {
-	return utils.DB.Create(&user)
+	return utils.DB.Select("*").Create(&user)
 }
 func DeleteUser(user UserBasic) *gorm.DB {
 	return utils.DB.Delete(&user)
