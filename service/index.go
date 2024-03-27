@@ -1,9 +1,11 @@
 package service
 
 import (
+	"chat/models"
 	"context"
 	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
+	"strconv"
 )
 
 // GetIndex
@@ -16,3 +18,17 @@ func GetIndex(ctx context.Context, c *app.RequestContext) {
 func ToRegister(ctx context.Context, c *app.RequestContext) {
 	c.HTML(http.StatusOK, "register.html", nil)
 }
+
+// 进入聊天主页
+func ToChat(ctx context.Context, c *app.RequestContext) {
+	userId, _ := strconv.Atoi(c.Query("userId"))
+	token := c.Query("token")
+	user := models.UserBasic{}
+	user.ID = uint(userId)
+	user.Identity = token
+	c.HTML(http.StatusOK, "index.html", user)
+}
+
+//func Chat(c *gin.Context) {
+//	models.Chat(c.Writer, c.Request)
+//}

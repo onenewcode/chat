@@ -21,6 +21,7 @@ func Router(h *server.Hertz) {
 		h.GET("/", service.GetIndex)
 		h.GET("/index", service.GetIndex)
 		h.GET("/toRegister", service.ToRegister)
+		h.GET("/toChat", service.ToChat)
 	}
 	users := h.Group("/user")
 	{
@@ -28,5 +29,19 @@ func Router(h *server.Hertz) {
 		users.POST("/createUser", service.CreateUser)
 		users.POST("/deleteUser", service.DeleteUser)
 		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd)
+		users.POST("/updateUser", service.UpdateUser)
+		users.POST("/user/findUserByNameAndPwd", service.FindUserByNameAndPwd)
+		users.POST("/find", service.FindByID)
+		////发送消息
+		//users.GET("/sendMsg", service.SendMsg)
+		////发送消息
+		//users.GET("/sendUserMsg", service.SendUserMsg)
+	}
+	// 群聊信息
+	contact := h.Group("/contact")
+	{
+		//添加好友
+		contact.POST("/addfriend", service.AddFriend)
+
 	}
 }

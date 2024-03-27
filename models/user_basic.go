@@ -12,8 +12,8 @@ type UserBasic struct {
 	gorm.Model
 	Name          string    `json:"name" form:"name"  vd:"($!='')"`
 	PassWord      string    `json:"passWord" form:"password"  vd:"($!='')"`
-	Phone         string    `json:"phone,omitempty"`
-	Email         string    `json:"email,omitempty"`
+	Phone         string    `json:"phone,omitempty" vd:"regexp('^1[3-9]{1}\\d{9}$')"`
+	Email         string    `json:"email,omitempty" vd:"email"`
 	Avatar        string    `json:"avatar,omitempty"` //头像
 	Identity      string    `form:"Identity"  vd:"($!='')"`
 	ClientIp      string    `json:"clientIp,omitempty"`
