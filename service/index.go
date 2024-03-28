@@ -29,6 +29,6 @@ func ToChat(ctx context.Context, c *app.RequestContext) {
 	c.HTML(http.StatusOK, "index.html", user)
 }
 
-//func Chat(c *gin.Context) {
-//	models.Chat(c.Writer, c.Request)
-//}
+func Chat(ctx context.Context, c *app.RequestContext) {
+	models.Chat(c)
+}

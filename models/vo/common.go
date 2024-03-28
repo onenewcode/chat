@@ -13,6 +13,6 @@ type UserRegisterVo struct {
 
 // 添加好友时用的视图
 type FriendVo struct {
-	UserId     uint   `json:"userId,omitempty"`
-	TargetName string `json:"targetName,omitempty"`
+	UserId     uint   `form:"userId,omitempty" vd:"($!=0)"`
+	TargetName string `form:"targetName,omitempty" vd:"($!='')"`
 }

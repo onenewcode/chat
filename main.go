@@ -14,7 +14,7 @@ func init() {
 func main() {
 	// 初始化一些必要项目
 	utils.InitMySQL()
-
+	utils.InitRedis()
 	h := server.New(
 		server.WithHostPorts(config.Port.Server),
 	)

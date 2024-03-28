@@ -34,7 +34,6 @@ func SearchFriend(userId uint) []UserBasic {
 func AddFriend(userId uint, targetName string) (int, string) {
 	if targetName != "" {
 		targetUser := FindUserByName(targetName)
-		//fmt.Println(targetUser, " userId        ", )
 		if targetUser.Salt != "" {
 			if targetUser.ID == userId {
 				return -1, "不能加自己"

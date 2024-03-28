@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/hertz-contrib/websocket"
 	"github.com/jinzhu/copier"
 	"math/rand"
 	"net/http"
@@ -169,6 +170,17 @@ func DeleteUser(ctx context.Context, c *app.RequestContext) {
 
 }
 
+// 查找所有好友
+func SearchFriends(ctx context.Context, c *app.RequestContext) {
+	id, _ := strconv.Atoi(c.PostForm("userId"))
+	users := models.SearchFriend(uint(id))
+	c.JSON(http.StatusOK, common.H{
+		Code:  0,
+		Rows:  users,
+		Total: len(users),
+	})
+}
+
 // UpdateUser
 // @Summary 修改用户
 // @Tags 用户模块
@@ -202,7 +214,16 @@ func UpdateUser(ctx context.Context, c *app.RequestContext) {
 // 添加好友
 func AddFriend(ctx context.Context, c *app.RequestContext) {
 	user := vo.FriendVo{}
-	c.Bind(&user)
+	// 检验数据是否合法
+	err := c.BindAndValidate(&user)
+	if err != nil {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  common.UserISEmpty,
+		})
+		return
+	}
 	code, msg := models.AddFriend(user.UserId, user.TargetName)
 	// 查找不到直接返回
 	if code == 0 {
@@ -228,4 +249,138 @@ func FindByID(ctx context.Context, c *app.RequestContext) {
 		Data: data,
 		Msg:  "ok",
 	})
+}
+
+// 防止跨域站点伪造请求
+var upGrader = websocket.HertzUpgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(ctx *app.RequestContext) bool {
+		return true
+	},
+}
+
+func SendMsg(ctx context.Context, c *app.RequestContext) {
+	err := upGrader.Upgrade(c, func(conn *websocket.Conn) {
+		// 关闭连接
+		defer func(ws *websocket.Conn) {
+			err := ws.Close()
+			if err != nil {
+				hlog.Info(err)
+			}
+			hlog.Info("websocket关闭")
+		}(conn)
+		MsgHandler(ctx, conn)
+	})
+	if err != nil {
+		hlog.Info(err)
+		return
+	}
+
+}
+
+// 发送消息
+func RedisMsg(ctx context.Context, c *app.RequestContext) {
+	userIdA, _ := strconv.Atoi(c.PostForm("userIdA"))
+	userIdB, _ := strconv.Atoi(c.PostForm("userIdB"))
+	start, _ := strconv.Atoi(c.PostForm("start"))
+	end, _ := strconv.Atoi(c.PostForm("end"))
+	isRev, _ := strconv.ParseBool(c.PostForm("isRev"))
+	res := models.RedisMsg(int64(userIdA), int64(userIdB), int64(start), int64(end), isRev)
+	c.JSON(http.StatusOK, common.H{
+		Code:  0,
+		Rows:  "0k",
+		Total: res,
+	})
+}
+
+// 消息处理器
+func MsgHandler(ctx context.Context, ws *websocket.Conn) {
+	for {
+		msg, err := utils.Subscribe(ctx, utils.PublishKey)
+		if err != nil {
+			hlog.Info(" MsgHandler 接受失败", err)
+		}
+		tm := time.Now().Format("2006-01-02 15:04:05")
+		m := fmt.Sprintf("[ws][%s]:%s", tm, msg)
+		err = ws.WriteMessage(1, []byte(m))
+		if err != nil {
+			hlog.Error(err)
+		}
+	}
+}
+
+// 发送指定消息
+func SendUserMsg(ctx context.Context, c *app.RequestContext) {
+	//models.Chat(c.Writer, c.Request)
+}
+
+// 新建群
+func CreateCommunity(ctx context.Context, c *app.RequestContext) {
+	community := models.Community{}
+	err := c.BindAndValidate(&community)
+	if err != nil {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Msg:  common.UserParamError,
+		})
+	}
+	data, msg := models.CreateCommunity(community)
+	// 查找不到直接返回
+	if data == 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code: 0,
+			Data: data,
+			Msg:  msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
+}
+
+// 加载群列表
+func LoadCommunity(ctx context.Context, c *app.RequestContext) {
+	ownerId, _ := strconv.Atoi(c.PostForm("ownerId"))
+	data, msg := models.LoadCommunity(uint(ownerId))
+	// 查找不到直接返回
+	if len(data) != 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code:  0,
+			Rows:  data,
+			Total: msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
+}
+
+// 加入群 userId uint, comId uint
+func JoinGroups(ctx context.Context, c *app.RequestContext) {
+	userId, _ := strconv.Atoi(c.PostForm("userId"))
+	comId := c.PostForm("comId")
+	data, msg := models.JoinGroup(uint(userId), comId)
+	if data == 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code: 0,
+			Data: data,
+			Msg:  msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
 }
