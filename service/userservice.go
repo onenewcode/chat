@@ -192,8 +192,10 @@ func SearchFriends(ctx context.Context, c *app.RequestContext) {
 // @Success 200 {string} json{"code","message"}
 // @Router /user/updateUser [post]
 func UpdateUser(ctx context.Context, c *app.RequestContext) {
+	user_vo := vo.UserUpdate{}
+	err := c.BindAndValidate(&user_vo)
 	user := models.UserBasic{}
-	err := c.BindAndValidate(&user)
+	copier.Copy(&user, &user_vo)
 	if err != nil {
 		c.JSON(http.StatusOK, common.Result{
 			Code:    -1,
@@ -286,6 +288,7 @@ func RedisMsg(ctx context.Context, c *app.RequestContext) {
 	start, _ := strconv.Atoi(c.PostForm("start"))
 	end, _ := strconv.Atoi(c.PostForm("end"))
 	isRev, _ := strconv.ParseBool(c.PostForm("isRev"))
+	// 构建消息，发送给redis,用redis作为消息沟通的中间件，
 	res := models.RedisMsg(int64(userIdA), int64(userIdB), int64(start), int64(end), isRev)
 	c.JSON(http.StatusOK, common.H{
 		Code:  0,

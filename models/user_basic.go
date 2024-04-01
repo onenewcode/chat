@@ -10,18 +10,18 @@ import (
 
 type UserBasic struct {
 	gorm.Model
-	Name          string    `json:"name" form:"name"  vd:"($!='')"`
-	PassWord      string    `json:"passWord" form:"password"  vd:"($!='')"`
-	Phone         string    `json:"phone,omitempty" vd:"regexp('^1[3-9]{1}\\d{9}$')"`
-	Email         string    `json:"email,omitempty" vd:"email"`
+	Name          string    `json:"name" form:"name"`
+	PassWord      string    `json:"passWord" form:"password"`
+	Phone         string    `json:"phone,omitempty"` // vd:"regexp('^1[3-9]{1}\\d{9}$')"
+	Email         string    `json:"email,omitempty"`
 	Avatar        string    `json:"avatar,omitempty"` //头像
-	Identity      string    `form:"Identity"  vd:"($!='')"`
+	Identity      string    `form:"Identity"`
 	ClientIp      string    `json:"clientIp,omitempty"`
 	ClientPort    string    `json:"clientPort,omitempty"`
 	Salt          string    `json:"salt,omitempty"`
 	LoginTime     time.Time `json:"loginTime,omitempty"`
 	HeartbeatTime time.Time `json:"heartbeatTime,omitempty"`
-	LoginOutTime  time.Time `json:"loginOutTime,omitempty" gorm:"column:login_out_time" json:"login_out_time" `
+	LoginOutTime  time.Time `json:"loginOutTime,omitempty" gorm:"column:login_out_time" json:"login_out_time"`
 	IsLogout      bool      `json:"isLogout,omitempty"`
 	DeviceInfo    string    `json:"deviceInfo,omitempty"`
 }
@@ -72,7 +72,7 @@ func DeleteUser(user UserBasic) *gorm.DB {
 	return utils.DB.Delete(&user)
 }
 func UpdateUser(user UserBasic) *gorm.DB {
-	return utils.DB.Model(&user).Updates(UserBasic{Name: user.Name, PassWord: user.PassWord, Phone: user.Phone, Email: user.Email, Avatar: user.Avatar})
+	return utils.DB.Model(&user).Updates(&user)
 }
 
 // 查找某个用户

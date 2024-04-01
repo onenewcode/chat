@@ -38,6 +38,7 @@ func Router(h *server.Hertz) {
 		users.GET("/sendMsg", service.SendMsg)
 		//发送消息
 		users.GET("/sendUserMsg", service.SendUserMsg)
+		// redis中获取消息顺序
 		users.POST("/redisMsg", service.RedisMsg)
 	}
 	// 群聊信息
@@ -53,5 +54,5 @@ func Router(h *server.Hertz) {
 		contact.POST("/joinGroup", service.JoinGroups)
 	}
 	//上传文件
-	//h.POST("/attach/upload", service.Upload)
+	h.POST("/attach/upload", service.Upload)
 }

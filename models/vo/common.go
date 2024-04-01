@@ -16,3 +16,8 @@ type FriendVo struct {
 	UserId     uint   `form:"userId,omitempty" vd:"($!=0)"`
 	TargetName string `form:"targetName,omitempty" vd:"($!='')"`
 }
+type UserUpdate struct {
+	ID     uint   `form:"id"`
+	Name   string `form:"name"  vd:"($!='')"`
+	Avatar string `form:"icon"`
+}

@@ -199,3 +199,5 @@ sendGroupMsg(msg.TargetId, data) //发送的群ID ，消息内容
 }
 }
 ```
+### 群聊功能
+
