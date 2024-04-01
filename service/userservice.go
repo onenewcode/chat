@@ -296,6 +296,7 @@ func RedisMsg(ctx context.Context, c *app.RequestContext) {
 
 // 消息处理器
 func MsgHandler(ctx context.Context, ws *websocket.Conn) {
+	// 由前端控制websocket的关闭
 	for {
 		msg, err := utils.Subscribe(ctx, utils.PublishKey)
 		if err != nil {

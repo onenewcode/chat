@@ -18,23 +18,22 @@ func Router(h *server.Hertz) {
 	h.LoadHTMLGlob("views/**/*")
 	//首页
 	{
-		h.GET("/", service.GetIndex)
-		h.GET("/index", service.GetIndex)
-		h.GET("/toRegister", service.ToRegister)
-		h.GET("/toChat", service.ToChat)
+		h.GET("/", service.GetIndex)             // 主页
+		h.GET("/index", service.GetIndex)        // 主页与"/"显示的界面相同
+		h.GET("/toRegister", service.ToRegister) // 注册界面
+		h.GET("/toChat", service.ToChat)         // 聊天主页
 		h.GET("/chat", service.Chat)
 		// 查找所有好友
 		h.POST("/searchFriends", service.SearchFriends)
 	}
 	users := h.Group("/user")
 	{
-		users.POST("/getUserList", service.GetUserList)
-		users.POST("/createUser", service.CreateUser)
-		users.POST("/deleteUser", service.DeleteUser)
-		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd)
-		users.POST("/updateUser", service.UpdateUser)
-		users.POST("/user/findUserByNameAndPwd", service.FindUserByNameAndPwd)
-		users.POST("/find", service.FindByID)
+		users.POST("/getUserList", service.GetUserList)                   // 获取所有用户
+		users.POST("/createUser", service.CreateUser)                     //创建新用户
+		users.POST("/deleteUser", service.DeleteUser)                     // 删除用户
+		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd) //根据用户名查找用户
+		users.POST("/updateUser", service.UpdateUser)                     //更新用户数据
+		users.POST("/find", service.FindByID)                             // 根据用户id查找用户
 		//发送消息 群发
 		users.GET("/sendMsg", service.SendMsg)
 		//发送消息

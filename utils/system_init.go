@@ -45,6 +45,7 @@ func InitRedis() {
 		PoolSize:     config.Redis.PoolSize,
 		MinIdleConns: config.Redis.MinIdleConn,
 	})
+
 }
 
 const (

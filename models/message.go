@@ -65,22 +65,17 @@ func Chat(c *app.RequestContext) {
 	//targetId := query.Get("targetId")
 	//context := query.Get("context")
 	isvalida := true //checkToke()  待补充进行校验
+
+	// 升级协议，
 	err := (&websocket.HertzUpgrader{
 		//token 校验
 		CheckOrigin: func(ctx *app.RequestContext) bool {
 			return isvalida
 		},
 	}).Upgrade(c, func(conn *websocket.Conn) {
-		// 关闭连接
-		defer func(ws *websocket.Conn) {
-			err := ws.Close()
-			if err != nil {
-				hlog.Info(err)
-			}
-			hlog.Info("websocket关闭")
-		}(conn)
 		//2.获取conn
 		currentTime := uint64(time.Now().Unix())
+		// 构建我们的连接节点
 		node := &Node{
 			Conn:          conn,
 			Addr:          conn.RemoteAddr().String(), //客户端地址
@@ -94,12 +89,27 @@ func Chat(c *app.RequestContext) {
 		rwLocker.Lock()
 		clientMap[userId] = node
 		rwLocker.Unlock()
+		//err := node.Conn.WriteMessage(websocket.TextMessage, []byte("Fdas"))
+		//if err != nil {
+		//	hlog.Info(err)
+		//	return
+		//}
 		//5.完成发送逻辑
 		go sendProc(node)
 		//6.完成接受逻辑
 		go recvProc(node)
 		//7.加入在线用户到缓存
 		SetUserOnlineInfo("online_"+Id, []byte(node.Addr), time.Duration(viper.GetInt("timeout.RedisOnlineTime"))*time.Hour)
+
+		// 监听，应为一旦升级结束便会关闭websocket连接
+		for {
+			// 监听集合中是否有，没有就直接推出
+			_, flag := clientMap[userId]
+			if flag == false {
+				return
+			}
+			time.Sleep(1 * time.Second)
+		}
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -231,7 +241,6 @@ func sendGroupMsg(targetId int64, msg []byte) {
 		if targetId != int64(userIds[i]) {
 			sendMsg(int64(userIds[i]), msg)
 		}
-
 	}
 }
 
@@ -258,9 +267,7 @@ func JoinGroup(userId uint, comId string) (int, string) {
 
 // 私聊发送消息
 func sendMsg(userId int64, msg []byte) {
-	rwLocker.RLock()
 	node, ok := clientMap[userId]
-	rwLocker.RUnlock()
 	jsonMsg := Message{}
 	json.Unmarshal(msg, &jsonMsg)
 	ctx := context.Background()
