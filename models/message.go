@@ -22,7 +22,7 @@ import (
 // 消息
 type Message struct {
 	gorm.Model
-	UserId     int64  //发送者
+	UserId     int64  `json:"userId,omitempty"` //发送者
 	TargetId   int64  //接受者
 	Type       int    //发送类型  1私聊  2群聊  3心跳
 	Media      int    //消息类型  1文字 2表情包 3语音 4图片 /表情包
@@ -117,13 +117,13 @@ func Chat(c *app.RequestContext) {
 		go recvProc(node)
 
 		//7.发送历史消息
-		{
-			nums := ListUserId(userId)
-			for _, v := range *nums {
-				b, _ := json.Marshal(&v)
-				node.DataQueue <- b
-			}
-		}
+		//{
+		//	nums := ListUserId(userId)
+		//	for _, v := range *nums {
+		//		b, _ := json.Marshal(&v)
+		//		node.DataQueue <- b
+		//	}
+		//}
 		//8.加入在线用户到缓存
 		SetUserOnlineInfo("online_"+Id, []byte(node.Addr), time.Duration(config.Timeout.RedisOnlineTime)*time.Hour)
 		// 监听，应为一旦升级结束便会关闭websocket连接
@@ -142,6 +142,7 @@ func Chat(c *app.RequestContext) {
 	}
 }
 
+// 发送信息到客户端
 func sendProc(node *Node) {
 	for {
 		select {
@@ -156,6 +157,7 @@ func sendProc(node *Node) {
 	}
 }
 
+// 从客户端接收信息
 func recvProc(node *Node) {
 	for {
 		_, data, err := node.Conn.ReadMessage()
@@ -175,7 +177,7 @@ func recvProc(node *Node) {
 			node.Heartbeat(currentTime)
 		} else {
 			dispatch(data)
-			broadMsg(data)
+			broadMsg(data) // 广播信息
 			hlog.Info("[ws] recvProc <<<<< ", string(data))
 		}
 
@@ -250,9 +252,9 @@ func dispatch(data []byte) {
 		return
 	}
 	//存储数据库的步骤
-	{
-		Save(msg)
-	}
+	//{
+	//	Save(msg)
+	//}
 	switch msg.Type {
 	case 1: //私信
 		hlog.Info("dispatch  data :", string(data))
@@ -294,7 +296,7 @@ func JoinGroup(userId uint, comId string) (int, string) {
 	}
 }
 
-// 私聊发送消息
+// 从node的消息队列中接受消息，把接收到的消息存入redis，数据库不在存储消息数据
 func sendMsg(userId int64, msg []byte) {
 	node, ok := clientMap[userId]
 	jsonMsg := Message{}

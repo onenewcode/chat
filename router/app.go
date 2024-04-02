@@ -38,7 +38,7 @@ func Router(h *server.Hertz) {
 		users.GET("/sendMsg", service.SendMsg)
 		//发送消息
 		users.GET("/sendUserMsg", service.SendUserMsg)
-		// redis中获取消息顺序
+		// 消息存在redis中，现在
 		users.POST("/redisMsg", service.RedisMsg)
 	}
 	// 群聊信息

@@ -3,6 +3,7 @@ package models
 import (
 	"chat/utils"
 	"fmt"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"gorm.io/gorm"
 )
 
@@ -53,7 +54,7 @@ func LoadCommunity(ownerId uint) ([]*Community, string) {
 	data := make([]*Community, 10)
 	utils.DB.Where("id in ?", objIds).Find(&data)
 	for _, v := range data {
-		fmt.Println(v)
+		hlog.Info(v)
 	}
 	//utils.DB.Where()
 	return data, "查询成功"
