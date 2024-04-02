@@ -43,8 +43,17 @@ func (table *Message) TableName() string {
 func (msg Message) MarshalBinary() ([]byte, error) {
 	return json.Marshal(msg)
 }
-func (msg *Message) Save() {
+
+// 存储消息
+func Save(msg Message) {
 	utils.DB.Create(&msg)
+}
+
+// 通过user_id获取消息列表
+func ListUserId(id int64) *[]Message {
+	var nums []Message
+	utils.DB.Where("user_id=?", id).Or("target_id=?", id).Find(&nums)
+	return &nums
 }
 
 // 连接节点
@@ -106,7 +115,16 @@ func Chat(c *app.RequestContext) {
 		go sendProc(node)
 		//6.完成接受逻辑
 		go recvProc(node)
-		//7.加入在线用户到缓存
+
+		//7.发送历史消息
+		{
+			nums := ListUserId(userId)
+			for _, v := range *nums {
+				b, _ := json.Marshal(&v)
+				node.DataQueue <- b
+			}
+		}
+		//8.加入在线用户到缓存
 		SetUserOnlineInfo("online_"+Id, []byte(node.Addr), time.Duration(config.Timeout.RedisOnlineTime)*time.Hour)
 		// 监听，应为一旦升级结束便会关闭websocket连接
 		for {
@@ -233,7 +251,7 @@ func dispatch(data []byte) {
 	}
 	//存储数据库的步骤
 	{
-		msg.Save()
+		Save(msg)
 	}
 	switch msg.Type {
 	case 1: //私信
