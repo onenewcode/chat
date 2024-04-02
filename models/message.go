@@ -1,6 +1,7 @@
 package models
 
 import (
+	"chat/config"
 	"chat/utils"
 	"context"
 	"encoding/json"
@@ -36,6 +37,14 @@ type Message struct {
 
 func (table *Message) TableName() string {
 	return "message"
+}
+
+// 需要重写此方法才能完整的msg转byte[]
+func (msg Message) MarshalBinary() ([]byte, error) {
+	return json.Marshal(msg)
+}
+func (msg *Message) Save() {
+	utils.DB.Create(&msg)
 }
 
 // 连接节点
@@ -89,7 +98,6 @@ func Chat(c *app.RequestContext) {
 		rwLocker.Lock()
 		clientMap[userId] = node
 		rwLocker.Unlock()
-		//err := node.Conn.WriteMessage(websocket.TextMessage, []byte("Fdas"))
 		//if err != nil {
 		//	hlog.Info(err)
 		//	return
@@ -99,8 +107,7 @@ func Chat(c *app.RequestContext) {
 		//6.完成接受逻辑
 		go recvProc(node)
 		//7.加入在线用户到缓存
-		SetUserOnlineInfo("online_"+Id, []byte(node.Addr), time.Duration(viper.GetInt("timeout.RedisOnlineTime"))*time.Hour)
-
+		SetUserOnlineInfo("online_"+Id, []byte(node.Addr), time.Duration(config.Timeout.RedisOnlineTime)*time.Hour)
 		// 监听，应为一旦升级结束便会关闭websocket连接
 		for {
 			// 监听集合中是否有，没有就直接推出
@@ -112,7 +119,7 @@ func Chat(c *app.RequestContext) {
 		}
 	})
 	if err != nil {
-		fmt.Println(err)
+		hlog.Info(err)
 		return
 	}
 }
@@ -150,7 +157,7 @@ func recvProc(node *Node) {
 			node.Heartbeat(currentTime)
 		} else {
 			dispatch(data)
-			broadMsg(data) //todo 将消息广播到局域网
+			broadMsg(data)
 			hlog.Info("[ws] recvProc <<<<< ", string(data))
 		}
 
@@ -166,7 +173,7 @@ func broadMsg(data []byte) {
 func init() {
 	go udpSendProc()
 	go udpRecvProc()
-	fmt.Println("init goroutine ")
+	hlog.Info("init goroutine ")
 }
 
 // 完成udp数据发送协程
@@ -215,7 +222,7 @@ func udpRecvProc() {
 	}
 }
 
-// 后端调度逻辑处理
+// 后端调度逻辑处理，同时把消息存入数据库
 func dispatch(data []byte) {
 	msg := Message{}
 	msg.CreateTime = uint64(time.Now().Unix())
@@ -223,6 +230,10 @@ func dispatch(data []byte) {
 	if err != nil {
 		hlog.Info(err)
 		return
+	}
+	//存储数据库的步骤
+	{
+		msg.Save()
 	}
 	switch msg.Type {
 	case 1: //私信
@@ -278,6 +289,7 @@ func sendMsg(userId int64, msg []byte) {
 	if err != nil {
 		hlog.Info(err)
 	}
+
 	if r != "" {
 		if ok {
 			hlog.Info("sendMsg >>> userID: ", userId, "  msg:", string(msg))
@@ -303,11 +315,6 @@ func sendMsg(userId int64, msg []byte) {
 		hlog.Info(e)
 	}
 	hlog.Info(ress)
-}
-
-// 需要重写此方法才能完整的msg转byte[]
-func (msg Message) MarshalBinary() ([]byte, error) {
-	return json.Marshal(msg)
 }
 
 // 获取缓存里面的消息
@@ -350,7 +357,6 @@ func RedisMsg(userIdA int64, userIdB int64, start int64, end int64, isRev bool) 
 // 更新用户心跳
 func (node *Node) Heartbeat(currentTime uint64) {
 	node.HeartbeatTime = currentTime
-	return
 }
 
 // 清理超时连接
@@ -358,26 +364,28 @@ func CleanConnection(param interface{}) (result bool) {
 	result = true
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Println("cleanConnection err", r)
+			hlog.Error("cleanConnection err", r)
 		}
 	}()
-	//fmt.Println("定时任务,清理超时连接 ", param)
-	//node.IsHeartbeatTimeOut()
 	currentTime := uint64(time.Now().Unix())
 	for i := range clientMap {
 		node := clientMap[i]
 		if node.IsHeartbeatTimeOut(currentTime) {
-			fmt.Println("心跳超时..... 关闭连接：", node)
+			hlog.Info("心跳超时..... 关闭连接：", node)
 			node.Conn.Close()
+			rwLocker.Lock()
+			delete(clientMap, i)
+			rwLocker.Unlock()
 		}
+
 	}
 	return result
 }
 
 // 用户心跳是否超时
 func (node *Node) IsHeartbeatTimeOut(currentTime uint64) (timeout bool) {
-	if node.HeartbeatTime+viper.GetUint64("timeout.HeartbeatMaxTime") <= currentTime {
-		fmt.Println("心跳超时。。。自动下线", node)
+	if node.HeartbeatTime+config.Timeout.HeartbeatHz <= currentTime {
+		hlog.Info("心跳超时。。。自动下线", node)
 		timeout = true
 	}
 	return

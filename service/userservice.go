@@ -170,7 +170,7 @@ func DeleteUser(ctx context.Context, c *app.RequestContext) {
 
 }
 
-// 查找所有好友
+// 查找所有好友,需要我们输入完整的用户名称。
 func SearchFriends(ctx context.Context, c *app.RequestContext) {
 	id, _ := strconv.Atoi(c.PostForm("userId"))
 	users := models.SearchFriend(uint(id))

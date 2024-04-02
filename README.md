@@ -129,7 +129,7 @@ func Chat(c *app.RequestContext) {
 }
 ```
 ### sendProc
-函数详解
+函数详解，通过连接的map集合，获取要发送人，的websocket连接，把信息直接发送给指定前端。
 ```go
 func sendProc(node *Node) {
 	for {

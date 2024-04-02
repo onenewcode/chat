@@ -2,14 +2,19 @@ package main
 
 import (
 	"chat/config"
+	"chat/models"
 	"chat/router"
 	"chat/utils"
 	"github.com/cloudwego/hertz/pkg/app/middlewares/server/recovery"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/spf13/viper"
+	"time"
 )
 
 func init() {
 	config.InitConfig()
+	// 初始化定时器，用于定期清除过期的node连接
+	utils.Timer(time.Duration(viper.GetInt("timeout.DelayHeartbeat"))*time.Second, time.Duration(viper.GetInt("timeout.HeartbeatHz"))*time.Second, models.CleanConnection, "")
 }
 func main() {
 	// 初始化一些必要项目

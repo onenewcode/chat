@@ -24,7 +24,7 @@ type redis struct {
 }
 type timeout struct {
 	DelayHeartbeat   int
-	HeartbeatHz      int
+	HeartbeatHz      uint64
 	HeartbeatMaxTime int
 	RedisOnlineTime  int
 }
