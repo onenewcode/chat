@@ -2,7 +2,10 @@ package router
 
 import (
 	"chat/service"
+	"chat/utils"
 	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/hertz-contrib/cache"
+	"time"
 )
 
 func Router(h *server.Hertz) {
@@ -10,6 +13,8 @@ func Router(h *server.Hertz) {
 	//docs.SwaggerInfo.BasePath = ""
 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	// 设置全局的缓存过期时间（会被更细粒度的设置覆盖）
+	my_cache := cache.NewCacheByRequestURI(utils.RedisStore, 2*time.Hour)
 	//静态资源
 	h.Static("/asset", ".")
 	// 为单个文件提供映射
@@ -24,11 +29,11 @@ func Router(h *server.Hertz) {
 		h.GET("/toChat", service.ToChat)         // 聊天主页
 		h.GET("/chat", service.Chat)
 		// 查找所有好友
-		h.POST("/searchFriends", service.SearchFriends)
+		h.POST("/searchFriends", my_cache, service.SearchFriends)
 	}
 	users := h.Group("/user")
 	{
-		users.POST("/getUserList", service.GetUserList)                   // 获取所有用户
+		users.POST("/getUserList", my_cache, service.GetUserList)         // 获取所有用户
 		users.POST("/createUser", service.CreateUser)                     //创建新用户
 		users.POST("/deleteUser", service.DeleteUser)                     // 删除用户
 		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd) //根据用户名查找用户

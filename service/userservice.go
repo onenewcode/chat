@@ -41,6 +41,8 @@ func GetUserList(ctx context.Context, c *app.RequestContext) {
 // @Success 200 {string} json{"code","message"}
 // @Router /user/createUser [get]
 func CreateUser(ctx context.Context, c *app.RequestContext) {
+	// 删除用户缓存
+	utils.DeleteALLFriends()
 	data := vo.UserRegisterVo{}
 	err := c.BindAndValidate(&data)
 	// 修改，现在通过结构体的vd字段进行校验
@@ -157,6 +159,8 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 // @Success 200 {string} json{"code","message"}
 // @Router /user/deleteUser [get]
 func DeleteUser(ctx context.Context, c *app.RequestContext) {
+	// 删除所有用户缓存
+	utils.DeleteALLFriends()
 	user := models.UserBasic{}
 	id, _ := strconv.Atoi(c.Query("id"))
 	hlog.Info("删除用户", id)
@@ -192,6 +196,8 @@ func SearchFriends(ctx context.Context, c *app.RequestContext) {
 // @Success 200 {string} json{"code","message"}
 // @Router /user/updateUser [post]
 func UpdateUser(ctx context.Context, c *app.RequestContext) {
+	// 删除用户缓存
+	utils.DeleteALLFriends()
 	user_vo := vo.UserUpdate{}
 	err := c.BindAndValidate(&user_vo)
 	user := models.UserBasic{}

@@ -83,6 +83,12 @@ func Chat(c *app.RequestContext) {
 	//targetId := query.Get("targetId")
 	//context := query.Get("context")
 	isvalida := true //checkToke()  待补充进行校验
+	// 判断是否已有连接，已有的话直接删除，防止重建连接导致程序推出。
+	//{
+	//	rwLocker.Lock()
+	//	clientMap[userId] = node
+	//	rwLocker.Unlock()
+	//}
 
 	// 升级协议，
 	err := (&websocket.HertzUpgrader{

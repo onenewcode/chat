@@ -12,6 +12,8 @@ const (
 	UserCantAddRepeat        = "不能重复添加"
 	UserAddFriendError       = "添加好友失败"
 	FindNotUser              = "没有找到此用户"
+	ALLFriends               = "/searchFriends"
+	ALLUserFriends           = "/user/getUserList"
 )
 const (
 	UserDeletedSucceed   = "用户删除成功"
