@@ -11,6 +11,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/go-redis/redis/v8"
 	"github.com/hertz-contrib/cache/persist"
+	hertztracing "github.com/hertz-contrib/obs-opentelemetry/tracing"
 	"github.com/spf13/viper"
 	"time"
 )
@@ -34,9 +35,24 @@ func main() {
 	// 初始化一些必要项目
 	utils.InitMySQL()
 	utils.InitRedis()
+
+	// 导出
+	//serviceName := "echo"
+	//p := provider.NewOpenTelemetryProvider(
+	//	provider.WithServiceName(serviceName),
+	//	provider.WithExportEndpoint("localhost:4317"),
+	//	provider.WithInsecure(),
+	//)
+	//defer p.Shutdown(context.Background())
+
+	tracer, cfg := hertztracing.NewServerTracer()
+
 	h := server.New(
 		server.WithHostPorts(config.Port.Server),
+		tracer,
 	)
+	h.Use(hertztracing.ServerMiddleware(cfg))
+
 	router.Router(h)
 	h.Use(recovery.Recovery()) // 可确保即使在处理请求过程中发生未预期的错误或异常，服务也能维持运行状态
 	h.Spin()
