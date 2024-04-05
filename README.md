@@ -201,3 +201,24 @@ sendGroupMsg(msg.TargetId, data) //发送的群ID ，消息内容
 ```
 ### 群聊功能
 
+# 交叉编译
+设置环境
+```shell
+# 设置成linux对应的
+set GOARCH=amd64
+go env -w GOARCH=amd64
+set GOOS=linux
+go env -w GOOS=linux
+```
+```go
+go build -o yourprogram-linux-amd64 -ldflags="-s -w" -trimpath -v -tags netgo -buildmode=pie --platform=linux/amd64 .
+解释一下命令中的选项：
+
+-o yourprogram-linux-amd64：指定输出的可执行文件名为yourprogram-linux-amd64。您可以根据需要调整文件名。
+-ldflags="-s -w"：去除符号表和调试信息，减小生成的二进制文件大小。
+-trimpath：移除构建路径信息，使生成的二进制文件更整洁。
+-v：显示编译过程中的详细信息。
+-tags netgo：确保使用Go内置的网络包，而不是cgo实现，这对于跨平台编译非常重要。
+-buildmode=pie：生成Position Independent Executable (PIE)，有利于Linux系统的安全加固。
+--platform=linux/amd64：指定目标平台为Linux（操作系统）和AMD64（CPU架构）。根据实际需要，您可以替换为其他Linux架构，如linux/arm64。
+```
