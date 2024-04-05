@@ -1,0 +1,37 @@
+version: '3'
+networks:
+  chat:
+    driver: bridge
+services:
+  webapp:
+    image: onenewcode/chat-web:0.1.0
+    ports:
+      - "8082:8082"
+    # restart: always
+    networks:
+      - chat
+    depends_on:
+      - db
+      - redis
+  db:
+    image: mysql:8
+    # restart: always
+    environment:
+      - POSTGRES_USER=gitea
+      - POSTGRES_PASSWORD=gitea
+      - POSTGRES_DB=gitea
+    ports:
+      - "3306:3306"
+    networks:
+      - chat
+  redis:
+    image: mysql:8
+    restart: always
+    environment:
+      - POSTGRES_USER=gitea
+      - POSTGRES_PASSWORD=gitea
+      - POSTGRES_DB=gitea
+    ports:
+      - "3306:3306"
+    networks:
+      - chat 

@@ -222,3 +222,14 @@ go build -o yourprogram-linux-amd64 -ldflags="-s -w" -trimpath -v -tags netgo -b
 -buildmode=pie：生成Position Independent Executable (PIE)，有利于Linux系统的安全加固。
 --platform=linux/amd64：指定目标平台为Linux（操作系统）和AMD64（CPU架构）。根据实际需要，您可以替换为其他Linux架构，如linux/arm64。
 ```
+# docker打包镜像
+>docker build -t  onenewcode/chat-web:0.1.0 .
+
+打包镜像命令
+>docker build -t my-app:latest .
+
+>登陆dockerhub
+>docker login
+
+上传镜像命令
+>docker push onenewcode/chat-web:0.1.0
