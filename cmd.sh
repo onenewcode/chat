@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e # 这一行设置了Shell脚本的退出状态行为。-e选项使得脚本在遇到任何命令返回非零退出状态时立即终止执行。
 if [ "$ENV" = 'DEV' ]; then
  echo "Running Development Server" # 打印字符串
