@@ -1,0 +1,1 @@
+go build -o yourprogram-linux-amd64 -ldflags="-s -w" -trimpath -v -tags netgo -buildmode=pie --platform=linux/amd64 .
