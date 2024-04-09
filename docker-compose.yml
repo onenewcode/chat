@@ -1,37 +1,45 @@
-version: '3'
-networks:
-  chat:
-    driver: bridge
+version: "3"
 services:
-  webapp:
+  db:
+    image: onenewcode/mysql:chat
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"
+    networks:
+      - chat
+    healthcheck: # 设置健康检查
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+  redis:
+    image: redis:7.2.4
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "6379:6379"
+    command: ["redis-server"]
+    networks:
+      - chat
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+  chat:
     image: onenewcode/chat-web:0.1.0
+    container_name: chat-web
+    networks:
+      - chat
     ports:
       - "8082:8082"
-    # restart: always
-    networks:
-      - chat
+    # command: sh -c "/bin/sleep 60"
     depends_on:
-      - db
-      - redis
-  db:
-    image: mysql:8
-    # restart: always
-    environment:
-      - POSTGRES_USER=gitea
-      - POSTGRES_PASSWORD=gitea
-      - POSTGRES_DB=gitea
-    ports:
-      - "3306:3306"
-    networks:
-      - chat
-  redis:
-    image: mysql:8
-    restart: always
-    environment:
-      - POSTGRES_USER=gitea
-      - POSTGRES_PASSWORD=gitea
-      - POSTGRES_DB=gitea
-    ports:
-      - "3306:3306"
-    networks:
-      - chat 
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+networks:
+  chat:
+    external: false
