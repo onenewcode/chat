@@ -29,7 +29,7 @@ func Router(h *server.Hertz) {
 		h.GET("/toChat", service.ToChat)         // 聊天主页
 		h.GET("/chat", service.Chat)
 		// 查找所有好友
-		h.POST("/searchFriends", my_cache, service.SearchFriends)
+		h.POST("/searchFriends", service.SearchFriends)
 	}
 	users := h.Group("/user")
 	{
