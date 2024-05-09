@@ -21,7 +21,7 @@ func UploadLocal(c *app.RequestContext) {
 	if err != nil {
 		c.JSON(http.StatusOK, common.H{Code: -1, Data: nil, Msg: err.Error()})
 	}
-
+	// 获取文件拓展名
 	suffix := path.Ext(head.Filename)
 	// 生成随机文件名称
 	fileName := fmt.Sprintf("%d%04d%s", time.Now().Unix(), rand.Int31(), suffix)

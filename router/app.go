@@ -20,7 +20,7 @@ func Router(h *server.Hertz) {
 	// 为单个文件提供映射
 	h.StaticFile("/favicon.ico", "asset/images/favicon.ico")
 	//	r.StaticFS()
-	h.LoadHTMLGlob("views/**/*")
+	h.LoadHTMLGlob("views/**/ *")
 	//首页
 	{
 		h.GET("/", service.GetIndex)             // 主页
@@ -36,14 +36,14 @@ func Router(h *server.Hertz) {
 		users.POST("/getUserList", my_cache, service.GetUserList)         // 获取所有用户
 		users.POST("/createUser", service.CreateUser)                     //创建新用户
 		users.POST("/deleteUser", service.DeleteUser)                     // 删除用户
-		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd) //根据用户名查找用户
+		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd) //根据用户名查找用户，用于用户登录
 		users.POST("/updateUser", service.UpdateUser)                     //更新用户数据
 		users.POST("/find", service.FindByID)                             // 根据用户id查找用户
 		//发送消息 群发
 		users.GET("/sendMsg", service.SendMsg)
 		//发送消息
 		users.GET("/sendUserMsg", service.SendUserMsg)
-		// 消息存在redis中，现在
+		// 获取缓存中的历史消息
 		users.POST("/redisMsg", service.RedisMsg)
 	}
 	// 群聊信息

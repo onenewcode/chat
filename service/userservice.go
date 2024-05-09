@@ -313,6 +313,7 @@ func MsgHandler(ctx context.Context, ws *websocket.Conn) {
 		}
 		tm := time.Now().Format("2006-01-02 15:04:05")
 		m := fmt.Sprintf("[ws][%s]:%s", tm, msg)
+		// 写入消息
 		err = ws.WriteMessage(1, []byte(m))
 		if err != nil {
 			hlog.Error(err)
@@ -322,7 +323,7 @@ func MsgHandler(ctx context.Context, ws *websocket.Conn) {
 
 // 发送指定消息
 func SendUserMsg(ctx context.Context, c *app.RequestContext) {
-	//models.Chat(c.Writer, c.Request)
+	models.Chat(c)
 }
 
 // 新建群

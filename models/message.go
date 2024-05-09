@@ -63,7 +63,7 @@ type Node struct {
 	FirstTime     uint64          //首次连接时间
 	HeartbeatTime uint64          //心跳时间
 	LoginTime     uint64          //登录时间
-	DataQueue     chan []byte     //消息
+	DataQueue     chan []byte     //消息,从
 	GroupSets     mapset.Set[int] //好友 / 群
 }
 
@@ -257,10 +257,6 @@ func dispatch(data []byte) {
 		hlog.Info(err)
 		return
 	}
-	//存储数据库的步骤
-	//{
-	//	Save(msg)
-	//}
 	switch msg.Type {
 	case 1: //私信
 		hlog.Info("dispatch  data :", string(data))
@@ -270,6 +266,7 @@ func dispatch(data []byte) {
 	}
 }
 
+// 群发信息
 func sendGroupMsg(targetId int64, msg []byte) {
 	hlog.Info("开始群发消息")
 	userIds := SearchUserByGroupId(uint(targetId))
@@ -304,6 +301,7 @@ func JoinGroup(userId uint, comId string) (int, string) {
 
 // 从node的消息队列中接受消息，把接收到的消息存入redis，数据库不在存储消息数据
 func sendMsg(userId int64, msg []byte) {
+	// 从维护的map中获取目标目标用户的node
 	node, ok := clientMap[userId]
 	jsonMsg := Message{}
 	json.Unmarshal(msg, &jsonMsg)
@@ -311,17 +309,19 @@ func sendMsg(userId int64, msg []byte) {
 	targetIdStr := strconv.Itoa(int(userId))
 	userIdStr := strconv.Itoa(int(jsonMsg.UserId))
 	jsonMsg.CreateTime = uint64(time.Now().Unix())
+	// 获取指定用户是否上线
 	r, err := utils.Red.Get(ctx, "online_"+userIdStr).Result()
 	if err != nil {
 		hlog.Info(err)
 	}
-
 	if r != "" {
 		if ok {
 			hlog.Info("sendMsg >>> userID: ", userId, "  msg:", string(msg))
+			// 发送给目标用户的chan
 			node.DataQueue <- msg
 		}
 	}
+	// 发送数据给redis
 	var key string
 	if userId > jsonMsg.UserId {
 		key = "msg_" + userIdStr + "_" + targetIdStr
@@ -345,9 +345,6 @@ func sendMsg(userId int64, msg []byte) {
 
 // 获取缓存里面的消息
 func RedisMsg(userIdA int64, userIdB int64, start int64, end int64, isRev bool) []string {
-	//node, ok := clientMap[userIdA]
-	//jsonMsg := Message{}
-	//json.Unmarshal(msg, &jsonMsg)
 	ctx := context.Background()
 	userIdStr := strconv.Itoa(int(userIdA))
 	targetIdStr := strconv.Itoa(int(userIdB))
@@ -370,13 +367,6 @@ func RedisMsg(userIdA int64, userIdB int64, start int64, end int64, isRev bool) 
 	if err != nil {
 		hlog.Error(err) //没有找到
 	}
-	// 发送推送消息
-	/**
-	// 后台通过websoket 推送消息
-	for _, val := range rels {
-		fmt.Println("sendMsg >>> userID: ", userIdA, "  msg:", val)
-		node.DataQueue <- []byte(val)
-	}**/
 	return rels
 }
 
