@@ -354,8 +354,6 @@ func RedisMsg(userIdA int64, userIdB int64, start int64, end int64, isRev bool) 
 	} else {
 		key = "msg_" + userIdStr + "_" + targetIdStr
 	}
-	//key = "msg_" + userIdStr + "_" + targetIdStr
-	//rels, err := utils.Red.ZRevRange(ctx, key, 0, 10).Result()  //根据score倒叙
 
 	var rels []string
 	var err error

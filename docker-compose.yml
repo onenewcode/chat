@@ -1,13 +1,18 @@
 version: "3"
 services:
   db:
-    image: onenewcode/mysql:chat
+    image: mysql:8.0
+    container_name: mysql_db # 容器名称
     environment:
-      - MYSQL_ROOT_PASSWORD=root
+      MYSQL_ROOT_PASSWORD: root # 初始化root密码
+      MYSQL_DATABASE: todo #初始化数据名称
     ports:
       - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - chat
+      - work
     healthcheck: # 设置健康检查
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -15,31 +20,25 @@ services:
       retries: 3
   redis:
     image: redis:7.2.4
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
     ports:
       - "6379:6379"
     command: ["redis-server"]
     networks:
-      - chat
+      - work
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 30s
       retries: 3
-  chat:
-    image: onenewcode/chat-web:0.1.0
-    container_name: chat-web
-    networks:
-      - chat
+  nacos:
+    image: nacos/nacos-server:latest
+    container_name: nacos_container
+    environment:
+      - MODE=standalone
     ports:
-      - "8082:8082"
-    # command: sh -c "/bin/sleep 60"
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - "8848:8848"
+    networks:
+      - work
 networks:
   chat:
     external: false

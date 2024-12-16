@@ -20,7 +20,7 @@ func Router(h *server.Hertz) {
 	// 为单个文件提供映射
 	h.StaticFile("/favicon.ico", "asset/images/favicon.ico")
 	//	r.StaticFS()
-	h.LoadHTMLGlob("views/**/ *")
+	h.LoadHTMLGlob("views/**/*")
 	//首页
 	{
 		h.GET("/", service.GetIndex)             // 主页

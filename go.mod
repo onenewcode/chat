@@ -1,6 +1,6 @@
 module chat
 
-go 1.21
+go 1.23.2
 
 require (
 	github.com/cloudwego/hertz v0.8.1
