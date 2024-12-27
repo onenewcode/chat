@@ -7,17 +7,18 @@ import (
 	"chat/utils"
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/cloudwego/hertz/pkg/app/middlewares/server/recovery"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/go-redis/redis/v8"
 	"github.com/hertz-contrib/cache/persist"
 	hertztracing "github.com/hertz-contrib/obs-opentelemetry/tracing"
 	"github.com/spf13/viper"
-	"time"
 )
 
 func init() {
-	config.InitConfig()
+	config := Initialize()
 	// 初始化定时器，用于定期清除过期的node连接
 	utils.Timer(time.Duration(viper.GetInt("timeout.DelayHeartbeat"))*time.Second, time.Duration(viper.GetInt("timeout.HeartbeatHz"))*time.Second, models.CleanConnection, "")
 	// 初始化缓存中间件
@@ -32,10 +33,6 @@ func init() {
 
 }
 func main() {
-	// 初始化一些必要项目
-	utils.InitMySQL()
-	utils.InitRedis()
-
 	// 导出
 	//serviceName := "echo"
 	//p := provider.NewOpenTelemetryProvider(

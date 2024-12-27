@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/spf13/viper"
 )
 
@@ -12,6 +14,12 @@ var (
 	Port    port
 )
 
+type Config struct {
+	Redis   redis
+	Mysql   mysql
+	Timeout timeout
+	Port    port
+}
 type mysql struct {
 	DNS string
 }
@@ -34,47 +42,24 @@ type port struct {
 }
 
 // 初始化一个配置类，让viper读取指定的配置文件
-func configPath() (*viper.Viper, error) {
+func ConfigPath() *viper.Viper {
 	vp := viper.New()
 	vp.SetConfigName("app")
 	vp.AddConfigPath("config/")
 	vp.SetConfigType("yml")
 	err := vp.ReadInConfig()
 	if err != nil {
-		return nil, err
+		panic("配置文件读取错误")
 	}
 
-	return vp, nil
-}
-
-func readSection(vp *viper.Viper, k string, v interface{}) error {
-	err := vp.UnmarshalKey(k, v)
-	if err != nil {
-		return err
-	}
-	return nil
+	return vp
 }
 
 // 初始化配置，把所有的数据读取后放入global的全局变量中
-func InitConfig() {
-	vp, err := configPath()
-	if err != nil {
-		panic("配置文件读取错误")
+func InitConfig(vp *viper.Viper) Config {
+	var config Config
+	if err := viper.Unmarshal(&config); err != nil {
+		fmt.Printf("解析字段失败, %v", err)
 	}
-	err = readSection(vp, "redis", &Redis)
-	if err != nil {
-		panic("redis类读取错误，检查server类映射是否正确")
-	}
-	err = readSection(vp, "mysql", &Mysql)
-	if err != nil {
-		panic("mysql类读取错误，检查App类映射是否正确")
-	}
-	err = readSection(vp, "timeout", &Timeout)
-	if err != nil {
-		panic("timeout类读取错误，检查Database类映射是否正确")
-	}
-	err = readSection(vp, "port", &Port)
-	if err != nil {
-		panic("port类读取错误，检查port类映射是否正确")
-	}
+	return config
 }
