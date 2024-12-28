@@ -6,33 +6,34 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"github.com/deckarep/golang-set/v2"
-	"github.com/hertz-contrib/websocket"
-	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
-	"gorm.io/gorm"
 	"net"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/hertz-contrib/websocket"
+	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
 // 消息
 type Message struct {
 	gorm.Model
-	UserId     int64  `json:"userId,omitempty"` //发送者
-	TargetId   int64  //接受者
-	Type       int    //发送类型  1私聊  2群聊  3心跳
-	Media      int    //消息类型  1文字 2表情包 3语音 4图片 /表情包
-	Content    string //消息内容
-	CreateTime uint64 //创建时间
-	ReadTime   uint64 //读取时间
-	Pic        string
-	Url        string
-	Desc       string
-	Amount     int //其他数字统计
+	UserId     int64  `json:"userId,omitempty" gorm:"user_id,type:;not null;"`          //发送者
+	TargetId   int64  `json:"target_id,omitempty" gorm:"target_id,type:;not null;"`     //接受者
+	Type       int    `json:"type,omitempty" gorm:"type,type:;not null;"`               //发送类型  1私聊  2群聊  3心跳
+	Media      int    `json:"media,omitempty" gorm:"media,type:;not null;"`             //消息类型  1文字 2表情包 3语音 4图片 /表情包
+	Content    string `json:"content,omitempty" gorm:"content,type:;not null;"`         //消息内容
+	CreateTime uint64 `json:"create_time,omitempty" gorm:"create_time,type:;not null;"` //创建时间
+	ReadTime   uint64 `json:"read_time,omitempty" gorm:"read_time,type:;not null;"`     //读取时间
+	Pic        string `json:"pic,omitempty" gorm:"pic,type:;not null;"`
+	Url        string `json:"url,omitempty" gorm:"url,type:;not null;"`
+	Desc       string `json:"desc,omitempty" gorm:"desc,type:;not null;"`
+	Amount     int    `json:"amount,omitempty" gorm:"amount,type:;not null;"` //其他数字统计
 }
 
 func (table *Message) TableName() string {

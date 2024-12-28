@@ -2,16 +2,17 @@ package models
 
 import (
 	"chat/utils"
+
 	"gorm.io/gorm"
 )
 
 // 人员关系
 type Contact struct {
 	gorm.Model
-	OwnerId  uint //谁的关系信息
-	TargetId uint //对应的谁 /群 ID
-	Type     int  //对应的类型  1好友  2群  3xx
-	Desc     string
+	OwnerId  uint   `json:"owner_id,omitempty" gorm:"owner_id,type:;not null;" valid:"owner_id"`    //谁的关系信息
+	TargetId uint   `json:"target_id,omitempty" gorm:"target_id,type:;not null;" valid:"target_id"` //对应的谁 /群 ID
+	Type     int    `json:"type,omitempty" gorm:"type,type:;not null;" valid:"type"`                //对应的类型  1好友  2群  3xx
+	Desc     string `json:"desc,omitempty" gorm:"desc,type:;not null;" valid:"desc"`
 }
 
 func (table *Contact) TableName() string {

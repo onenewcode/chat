@@ -1,0 +1,62 @@
+{
+
+    "go.formatTool": "gofmt",
+
+    "go.lintFlags": [   
+
+        "-min_confidence=.8"
+
+    ],
+
+    "go.lintTool": "staticcheck",
+
+    "gopls": {
+
+        "ui.navigation.importShortcut": "Definition",
+        "ui.documentation.linksInHover": false
+
+    },
+    "go.editorContextMenuCommands": {
+
+        "toggleTestFile": true,
+
+        "addTags": true,
+
+        "removeTags": false,
+
+        "fillStruct": true,
+
+        "testAtCursor": true,
+
+        "testFile": false,
+
+        "testPackage": false,
+
+        "generateTestForFunction": true,
+
+        "generateTestForFile": false,
+
+        "generateTestForPackage": false,
+
+        "addImport": true,
+
+        "testCoverage": true,
+
+        "playground": true,
+
+        "debugTestAtCursor": true,
+
+        "benchmarkAtCursor": false
+
+    },
+
+   "go.addTags": {
+    "tags": "json,gorm", 
+    "options": "json=omitempty,gorm=type:;not null;", 
+    "promptForTags": false, 
+    "transform": "snakecase" 
+},
+    "git.untrackedChanges": "separate",
+
+    "git.alwaysShowStagedChangesResourceGroup": true
+}
