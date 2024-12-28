@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -17,4 +19,10 @@ func (table *Contact) TableName() string {
 	return "contact"
 }
 
-type ContactI interface{}
+type ContactI interface {
+	SearchFriend(ctx context.Context, userId uint) []UserBasic
+	// 添加好友   自己的ID  ， 好友的ID
+	AddFriend(ctx context.Context, userId uint, targetName string) (int, string)
+
+	SearchUserByGroupId(ctx context.Context, communityId uint) []uint
+}

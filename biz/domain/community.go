@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -17,4 +19,6 @@ func (table *Community) TableName() string {
 }
 
 type CommunityI interface {
+	Create(ctx context.Context, community Community) (int, string)
+	Load(ctx context.Context, ownerId uint) (*[]Community, string)
 }

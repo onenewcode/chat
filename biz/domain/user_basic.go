@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"gorm.io/gorm"
@@ -28,4 +29,14 @@ func (table *UserBasic) TableName() string {
 	return "user_basic"
 }
 
-type UserBasicI interface{}
+type UserBasicI interface {
+	GetUserList(ctx context.Context) *[]UserBasic
+	FindByNameAndPwd(ctx context.Context, name string, password string) UserBasic
+	FindByName(ctx context.Context, name string) UserBasic
+	FindByPhone(ctx context.Context, phone string) *gorm.DB
+	FindByEmail(ctx context.Context, email string) *gorm.DB
+	Create(ctx context.Context, user UserBasic) error
+	Delete(ctx context.Context, user UserBasic) error
+	UpdateUser(ctx context.Context, user UserBasic) error
+	FindByID(ctx context.Context, id uint) UserBasic
+}

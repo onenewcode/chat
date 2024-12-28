@@ -15,6 +15,7 @@ import (
 	"github.com/hertz-contrib/cache/persist"
 	hertztracing "github.com/hertz-contrib/obs-opentelemetry/tracing"
 	"github.com/spf13/viper"
+	"gorm.io/plugin/opentelemetry/provider"
 )
 
 func init() {
@@ -32,16 +33,17 @@ func init() {
 	}
 
 }
+func initOpentelemetry(serviceName string) {
+	p := provider.NewOpenTelemetryProvider(
+		provider.WithServiceName(serviceName),
+		// Support setting ExportEndpoint via environment variables: OTEL_EXPORTER_OTLP_ENDPOINT
+		provider.WithExportEndpoint("localhost:4317"),
+		provider.WithInsecure(),
+	)
+	defer p.Shutdown(context.Background())
+}
 func main() {
-	// 导出
-	//serviceName := "echo"
-	//p := provider.NewOpenTelemetryProvider(
-	//	provider.WithServiceName(serviceName),
-	//	provider.WithExportEndpoint("localhost:4317"),
-	//	provider.WithInsecure(),
-	//)
-	//defer p.Shutdown(context.Background())
-
+	// initOpentelemetry("chat")
 	tracer, cfg := hertztracing.NewServerTracer()
 
 	h := server.New(

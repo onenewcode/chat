@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -24,4 +26,9 @@ func (table *Message) TableName() string {
 	return "message"
 }
 
-type MessageI interface{}
+type MessageI interface {
+	// 存储消息
+	Save(ctx context.Context, msg Message)
+	// 通过user_id获取消息列表
+	ListUserId(ctx context.Context, id int64) *[]Message
+}
