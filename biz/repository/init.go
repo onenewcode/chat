@@ -13,10 +13,10 @@ import (
 	"gorm.io/plugin/prometheus"
 )
 
-var DB *gorm.DB
+var ()
 
 // 初始化数据库库
-func InitDB(c config.Config) {
+func InitDB(c config.Config) *gorm.DB {
 	dbLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
@@ -25,14 +25,14 @@ func InitDB(c config.Config) {
 			Colorful:      true,        // 是否使用彩色日志
 		},
 	)
-	var err error
-	DB, err = gorm.Open(mysql.Open(c.Mysql.DNS),
+	db, err := gorm.Open(mysql.Open(c.Mysql.DNS),
 		&gorm.Config{Logger: dbLogger})
 	if err != nil {
 		hlog.Error(err)
 		panic("failed to connect database")
 	}
 	hlog.Info(" MySQL init 。。。。")
+	return db
 }
 
 // initPrometheus
@@ -46,6 +46,12 @@ func initPrometheus(db *gorm.DB) {
 		HTTPServerPort:  8080,                        // 配置 http 服务监听端口，默认端口为 8080 （如果您配置了多个，只有第一个 `HTTPServerPort` 会被使用）
 		MetricsCollector: []prometheus.MetricsCollector{
 			&prometheus.MySQL{
+				// 指标名前缀，默认为 `gorm_status_`
+				// 例如： Threads_running 的指标名就是 `gorm_status_Threads_running`
+				Prefix: "gorm_status_",
+				// 拉取频率，默认使用 Prometheus 的 RefreshInterval
+				Interval: 100,
+				// 从 SHOW STATUS 选择变量变量，如果不设置，则使用全部的状态变量
 				VariableNames: []string{"Threads_running"},
 			},
 		}, // 用户自定义指标
