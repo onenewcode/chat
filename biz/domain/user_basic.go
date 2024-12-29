@@ -30,13 +30,14 @@ func (table *UserBasic) TableName() string {
 }
 
 type UserBasicI interface {
-	GetUserList(ctx context.Context) *[]UserBasic
+	GetUserList(ctx context.Context, name, phone, email string, pageIdx, pageSize int) *[]UserBasic
 	FindByNameAndPwd(ctx context.Context, name string, password string) UserBasic
+	// 非模糊查询一般
 	FindByName(ctx context.Context, name string) UserBasic
-	FindByPhone(ctx context.Context, phone string) *gorm.DB
-	FindByEmail(ctx context.Context, email string) *gorm.DB
+	FindByPhone(ctx context.Context, phone string) UserBasic
+	FindByEmail(ctx context.Context, email string) UserBasic
 	Create(ctx context.Context, user UserBasic) error
-	Delete(ctx context.Context, user UserBasic) error
-	UpdateUser(ctx context.Context, user UserBasic) error
+	Delete(ctx context.Context, id uint) error
+	Update(ctx context.Context, user UserBasic) error
 	FindByID(ctx context.Context, id uint) UserBasic
 }
