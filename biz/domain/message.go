@@ -28,7 +28,7 @@ func (table *Message) TableName() string {
 
 type MessageI interface {
 	// 存储消息
-	Save(ctx context.Context, msg Message)
+	Save(ctx context.Context, msg Message) error
 	// 通过user_id获取消息列表
-	ListUserId(ctx context.Context, id int64) *[]Message
+	ListUserId(ctx context.Context, userId, targetId int64, pageIdx, pageSize int) *[]Message
 }
