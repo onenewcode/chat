@@ -7,13 +7,26 @@
 package main
 
 import (
+	"chat/biz/repository"
 	"chat/config"
+	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
 
-func Initialize() config.Config {
+func Initialize() error {
 	viper := config.ConfigPath()
 	configConfig := config.InitConfig(viper)
-	return configConfig
+	error2 := initDB(configConfig)
+	return error2
 }
+
+func initDB(c config.Config) error {
+	db := repository.InitDB(c)
+	error2 := repository.InitRepo(db)
+	return error2
+}
+
+// wire.go:
+
+var InitConfigSet = wire.NewSet(config.InitConfig, config.ConfigPath)

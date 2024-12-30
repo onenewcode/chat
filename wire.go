@@ -3,12 +3,19 @@
 package main
 
 import (
+	"chat/biz/repository"
 	"chat/config"
 
 	"github.com/google/wire"
 )
 
-func Initialize() config.Config {
-	wire.Build(config.InitConfig, config.ConfigPath)
-	return config.Config{}
+var InitConfigSet = wire.NewSet(config.InitConfig, config.ConfigPath)
+
+func Initialize() error {
+	wire.Build(initDB, InitConfigSet)
+	return nil
+}
+func initDB(c config.Config) error {
+	wire.Build(repository.InitRepo, repository.InitDB)
+	return nil
 }

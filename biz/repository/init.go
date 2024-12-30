@@ -13,8 +13,6 @@ import (
 	"gorm.io/plugin/prometheus"
 )
 
-var ()
-
 // 初始化数据库库
 func InitDB(c config.Config) *gorm.DB {
 	dbLogger := logger.New(
@@ -56,4 +54,7 @@ func initPrometheus(db *gorm.DB) {
 			},
 		}, // 用户自定义指标
 	}))
+}
+func InitRepo(db *gorm.DB) error {
+	return nil
 }
