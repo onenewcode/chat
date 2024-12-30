@@ -20,9 +20,9 @@ func (table *Contact) TableName() string {
 }
 
 type ContactI interface {
-	SearchFriend(ctx context.Context, userId uint) []UserBasic
+	SearchFriend(ctx context.Context, userId uint) *[]UserBasic
 	// 添加好友   自己的ID  ， 好友的ID
-	AddFriend(ctx context.Context, userId uint, targetName string) (int, string)
+	AddFriend(ctx context.Context, userId, targetId uint) error
 
-	SearchUserByGroupId(ctx context.Context, communityId uint) []uint
+	SearchUserByGroupId(ctx context.Context, communityId uint, targetId int) []uint
 }

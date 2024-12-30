@@ -8,10 +8,11 @@ import (
 
 // 全局变量，提供给内部的其他包使用
 var (
-	Redis   redis
-	Mysql   mysql
-	Timeout timeout
-	Port    port
+	Redis        redis
+	Mysql        mysql
+	Timeout      timeout
+	Port         port
+	GlobalConfig Config
 )
 
 type Config struct {
@@ -61,5 +62,6 @@ func InitConfig(vp *viper.Viper) Config {
 	if err := viper.Unmarshal(&config); err != nil {
 		fmt.Printf("解析字段失败, %v", err)
 	}
+	GlobalConfig = config
 	return config
 }
