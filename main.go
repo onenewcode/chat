@@ -45,6 +45,8 @@ func initOpentelemetry(serviceName string) {
 	)
 	defer p.Shutdown(context.Background())
 }
+
+// 访问路径 http://localhost:8888/swagger/index.html#/
 func initSwagger(h *server.Hertz) {
 	// 教程地址：https://www.cloudwego.io/zh/docs/hertz/tutorials/basic-feature/middleware/swagger/#%E4%BD%BF%E7%94%A8%E7%94%A8%E6%B3%95
 	url := swagger.URL("http://localhost:8888/swagger/doc.json") // The url pointing to API definition
@@ -70,12 +72,13 @@ func main() {
 	tracer, cfg := hertztracing.NewServerTracer()
 
 	h := server.New(
-		server.WithHostPorts(config.Port.Server),
+		// server.WithHostPorts(config.Port.Server),
 		tracer,
 	)
 	h.Use(hertztracing.ServerMiddleware(cfg))
-	//
 
+	// 注册swagger
+	initSwagger(h)
 	// 注册路由
 	router.RegisterRouter(h)
 	h.Use(recovery.Recovery()) // 可确保即使在处理请求过程中发生未预期的错误或异常，服务也能维持运行状态
