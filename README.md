@@ -233,3 +233,4 @@ go build -o yourprogram-linux-amd64 -ldflags="-s -w" -trimpath -v -tags netgo -b
 
 上传镜像命令
 >docker push onenewcode/chat-web:0.1.0
+

@@ -60,9 +60,9 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		c.JSON(200,
 			common.Result{
-				-1,
-				common.UserNamePassWordISEmpty,
-				data,
+				Code:    -1,
+				Message: common.UserNamePassWordISEmpty,
+				Data:    data,
 			})
 		return
 	}
@@ -73,9 +73,9 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 	if data.PassWord != data.Identity {
 		c.JSON(200,
 			common.Result{
-				-1,
-				common.UserPasswordInconsistent,
-				data,
+				Code:    -1,
+				Message: common.UserPasswordInconsistent,
+				Data:    data,
 			})
 		return
 	}
@@ -85,9 +85,9 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 	if user.Name != "" {
 		c.JSON(200,
 			common.Result{
-				-1,
-				common.UserNameExist,
-				data,
+				Code:    -1,
+				Message: common.UserNameExist,
+				Data:    data,
 			})
 		return
 	}
@@ -100,9 +100,9 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 	user.HeartbeatTime = time.Now()
 	models.CreateUser(user)
 	c.JSON(http.StatusOK, common.Result{
-		0,
-		common.UserNamePassWordISEmpty,
-		user,
+		Code:    0,
+		Message: common.UserNamePassWordISEmpty,
+		Data:    user,
 	})
 }
 
@@ -119,9 +119,9 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 	if err != nil {
 		c.JSON(200,
 			common.Result{
-				-1,
-				common.UserNamePassWordISEmpty,
-				data,
+				Code:    -1,
+				Message: common.UserNamePassWordISEmpty,
+				Data:    data,
 			})
 		return
 	}
@@ -129,9 +129,9 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 	user := models.FindUserByName(data.Name)
 	if user.Name == "" {
 		c.JSON(http.StatusOK, common.Result{
-			-1,
-			common.UserISEmpty,
-			data,
+			Code:    -1,
+			Message: common.UserISEmpty,
+			Data:    data,
 		})
 		return
 	}
@@ -139,16 +139,16 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 	flag := utils.ValidPassword(data.PassWord, user.Salt, user.PassWord)
 	if !flag {
 		c.JSON(http.StatusOK, common.Result{
-			-1,
-			common.UserPasswordError,
-			data,
+			Code:    -1,
+			Message: common.UserPasswordError,
+			Data:    data,
 		})
 		return
 	}
 	c.JSON(http.StatusOK, common.Result{
-		0,
-		common.UserLoginSucceed,
-		user,
+		Code:    0,
+		Message: common.UserLoginSucceed,
+		Data:    user,
 	})
 }
 

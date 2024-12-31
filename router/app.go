@@ -3,9 +3,10 @@ package router
 import (
 	"chat/service"
 	"chat/utils"
+	"time"
+
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/hertz-contrib/cache"
-	"time"
 )
 
 func Router(h *server.Hertz) {
