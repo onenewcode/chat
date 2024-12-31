@@ -10,11 +10,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type CommunityRepo struct {
+type communityRepo struct {
 	db *gorm.DB // 使用构造函数注入 DB 依赖
 }
 
-func (c CommunityRepo) Create(ctx context.Context, community domain.Community) error {
+func (c communityRepo) Create(ctx context.Context, community domain.Community) error {
 	tx := c.db.WithContext(ctx).Begin()
 	//事务一旦开始，不论什么异常最终都会 Rollback
 	defer func() {
@@ -40,7 +40,7 @@ func (c CommunityRepo) Create(ctx context.Context, community domain.Community) e
 	tx.Commit()
 	return nil
 }
-func (c CommunityRepo) Load(ctx context.Context, ownerId uint) (*[]domain.Community, error) {
+func (c communityRepo) Load(ctx context.Context, ownerId uint) (*[]domain.Community, error) {
 	db := c.db.WithContext(ctx)
 	contacts := make([]domain.Contact, 0)
 	objIds := make([]uint64, 0)

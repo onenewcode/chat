@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"chat/biz/domain"
 	"chat/config"
 	"log"
 	"os"
@@ -11,6 +12,14 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/plugin/prometheus"
+)
+
+// 数据接口
+var (
+	CommunityRepo domain.CommunityI
+	ContactRepo   domain.ContactI
+	MessageRepo   domain.MessageI
+	UserBasicRepo domain.UserBasicI
 )
 
 // 初始化数据库库
@@ -56,5 +65,9 @@ func initPrometheus(db *gorm.DB) {
 	}))
 }
 func InitRepo(db *gorm.DB) error {
+	CommunityRepo = &communityRepo{db: db}
+	ContactRepo = &contactRepo{db: db}
+	MessageRepo = &messageRepo{db: db}
+	UserBasicRepo = &userBasicRepo{db: db}
 	return nil
 }

@@ -10,11 +10,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type ContactRepo struct {
+type contactRepo struct {
 	db *gorm.DB
 }
 
-func (c ContactRepo) SearchFriend(ctx context.Context, userId uint) *[]domain.UserBasic {
+func (c contactRepo) SearchFriend(ctx context.Context, userId uint) *[]domain.UserBasic {
 	db := c.db.WithContext(ctx)
 	contacts := make([]domain.Contact, 0)
 	objIds := make([]uint64, 0)
@@ -28,7 +28,7 @@ func (c ContactRepo) SearchFriend(ctx context.Context, userId uint) *[]domain.Us
 }
 
 // 添加好友   自己的ID  ， 好友的ID
-func (c ContactRepo) AddFriend(ctx context.Context, userId, targetId uint) error {
+func (c contactRepo) AddFriend(ctx context.Context, userId, targetId uint) error {
 	db := c.db.WithContext(ctx)
 	tx := db.Begin()
 	//事务一旦开始，不论什么异常最终都会 Rollback
@@ -58,7 +58,7 @@ func (c ContactRepo) AddFriend(ctx context.Context, userId, targetId uint) error
 
 }
 
-func (c ContactRepo) SearchUserByGroupId(ctx context.Context, communityId uint, targetId int) []uint {
+func (c contactRepo) SearchUserByGroupId(ctx context.Context, communityId uint, targetId int) []uint {
 	contacts := make([]domain.Contact, 0)
 	objIds := make([]uint, 0)
 	utils.DB.Where("target_id = ? and type= ?", communityId, targetId).Find(&contacts)
