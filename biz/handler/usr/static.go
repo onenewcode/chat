@@ -1,11 +1,12 @@
-package service
+package usr
 
 import (
 	"chat/models"
 	"context"
-	"github.com/cloudwego/hertz/pkg/app"
 	"net/http"
 	"strconv"
+
+	"github.com/cloudwego/hertz/pkg/app"
 )
 
 // GetIndex
