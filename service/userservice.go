@@ -7,14 +7,15 @@ import (
 	"chat/utils"
 	"context"
 	"fmt"
-	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"github.com/hertz-contrib/websocket"
-	"github.com/jinzhu/copier"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/hertz-contrib/websocket"
+	"github.com/jinzhu/copier"
 )
 
 // GetUserList
@@ -42,7 +43,7 @@ func GetUserList(ctx context.Context, c *app.RequestContext) {
 // @Router /user/createUser [get]
 func CreateUser(ctx context.Context, c *app.RequestContext) {
 	// 删除用户缓存
-	utils.DeleteALLFriends()
+	// utils.DeleteALLFriends()
 	data := vo.UserRegisterVo{}
 	err := c.BindAndValidate(&data)
 	// 修改，现在通过结构体的vd字段进行校验
@@ -160,7 +161,7 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 // @Router /user/deleteUser [get]
 func DeleteUser(ctx context.Context, c *app.RequestContext) {
 	// 删除所有用户缓存
-	utils.DeleteALLFriends()
+	// utils.DeleteALLFriends()
 	user := models.UserBasic{}
 	id, _ := strconv.Atoi(c.Query("id"))
 	hlog.Info("删除用户", id)
@@ -197,7 +198,7 @@ func SearchFriends(ctx context.Context, c *app.RequestContext) {
 // @Router /user/updateUser [post]
 func UpdateUser(ctx context.Context, c *app.RequestContext) {
 	// 删除用户缓存
-	utils.DeleteALLFriends()
+	// utils.DeleteALLFriends()
 	user_vo := vo.UserUpdate{}
 	err := c.BindAndValidate(&user_vo)
 	user := models.UserBasic{}
