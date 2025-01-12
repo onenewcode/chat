@@ -14,7 +14,7 @@ const (
 	FindNotUser              = "没有找到此用户"
 	ALLFriends               = "/searchFriends"
 	ALLUserFriends           = "/user/getUserList"
-	DBError                  = "数据库错误: %w"
+	DBError                  = "数据库错误：%w"
 )
 const (
 	UserDeletedSucceed   = "用户删除成功"
