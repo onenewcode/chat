@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterRouter(h *server.Hertz) {
-	// 注册测试swagger路由
+	// 注册测试 swagger 路由
 	h.GET("/ping", handler.PingHandler)
 
 	// TODO 未测试
@@ -15,6 +15,6 @@ func RegisterRouter(h *server.Hertz) {
 	h.Static("/asset", ".")
 	// 为单个文件提供映射
 	h.StaticFile("/favicon.ico", "asset/images/favicon.ico")
-	//	设置html模板路径
+	//	设置 html 模板路径
 	h.LoadHTMLGlob("views/**/*")
 }

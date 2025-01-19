@@ -27,6 +27,9 @@ func (u userBasicRepo) GetUserList(ctx context.Context, name, phone, email strin
 	if email != "" {
 		db = db.Where("email like ?", "%"+email+"%")
 	}
+	if pageIdx < 0 {
+		db.Find(&data)
+	}
 	db.Limit(pageSize).Offset((pageIdx - 1) * pageSize).Find(&data)
 	return &data
 
@@ -36,7 +39,7 @@ func (u userBasicRepo) FindByNameAndPwd(ctx context.Context, name string, passwo
 	user := domain.UserBasic{}
 	db.Where("name = ? and pass_word=?", name, password).First(&user)
 
-	//token加密
+	//token 加密
 	str := fmt.Sprintf("%d", time.Now().Unix())
 	temp := utils.MD5Encode(str)
 	db.Model(&user).Where("id = ?", user.ID).Update("identity", temp)

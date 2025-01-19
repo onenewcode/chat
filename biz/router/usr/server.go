@@ -1,61 +1,385 @@
 package usr
 
-// package router
+import (
+	"chat/biz/domain"
+	"chat/biz/repository"
+	"chat/common"
+	"chat/common/vo"
+	"chat/models"
 
-// import (
-// 	"github.com/cloudwego/hertz/pkg/app/server"
-// )
+	"chat/utils"
+	"context"
+	"fmt"
+	"math/rand"
+	"net/http"
+	"strconv"
+	"time"
 
-// func Router(h *server.Hertz) {
-// 	//swagger
-// 	//docs.SwaggerInfo.BasePath = ""
-// 	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/hertz-contrib/websocket"
+	"github.com/jinzhu/copier"
+)
 
-// 	// 设置全局的缓存过期时间（会被更细粒度的设置覆盖）
-// 	// my_cache := cache.NewCacheByRequestURI(utils.RedisStore, 2*time.Hour)
-// 	//静态资源
-// 	h.Static("/asset", ".")
-// 	// 为单个文件提供映射
-// 	h.StaticFile("/favicon.ico", "asset/images/favicon.ico")
-// 	//	r.StaticFS()
-// 	h.LoadHTMLGlob("views/**/*")
-// 	//首页
-// 	{
-// 		h.GET("/", service.GetIndex)             // 主页
-// 		h.GET("/index", service.GetIndex)        // 主页与"/"显示的界面相同
-// 		h.GET("/toRegister", service.ToRegister) // 注册界面
-// 		h.GET("/toChat", service.ToChat)         // 聊天主页
-// 		h.GET("/chat", service.Chat)
-// 		// 查找所有好友
-// 		h.POST("/searchFriends", service.SearchFriends)
-// 	}
-// 	users := h.Group("/user")
-// 	{
-// 		users.POST("/getUserList", service.GetUserList)                   // 获取所有用户
-// 		users.POST("/createUser", service.CreateUser)                     //创建新用户
-// 		users.POST("/deleteUser", service.DeleteUser)                     // 删除用户
-// 		users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd) //根据用户名查找用户，用于用户登录
-// 		users.POST("/updateUser", service.UpdateUser)                     //更新用户数据
-// 		users.POST("/find", service.FindByID)                             // 根据用户id查找用户
-// 		//发送消息 群发
-// 		users.GET("/sendMsg", service.SendMsg)
-// 		//发送消息
-// 		users.GET("/sendUserMsg", service.SendUserMsg)
-// 		// 获取缓存中的历史消息
-// 		users.POST("/redisMsg", service.RedisMsg)
-// 	}
-// 	// 群聊信息
-// 	contact := h.Group("/contact")
-// 	{
-// 		//添加好友
-// 		contact.POST("/addfriend", service.AddFriend)
-// 		//群列表
-// 		contact.POST("/loadcommunity", service.LoadCommunity)
-// 		// 创建群
-// 		contact.POST("/createCommunity", service.CreateCommunity)
-// 		// 添加如群
-// 		contact.POST("/joinGroup", service.JoinGroups)
-// 	}
-// 	//上传文件
-// 	h.POST("/attach/upload", service.Upload)
-// }
+// GetUserList
+// @Summary 所有用户
+// @Tags 用户模块
+// @Success 200 {string} json{"code","message"}
+// @Router /user/getUserList [get]
+func GetUserList(ctx context.Context, c *app.RequestContext) {
+	data := repository.UserBasicRepo.GetUserList(ctx, "", "", "", -1, 10)
+	c.JSON(http.StatusOK, common.Result{
+		Code:    0,
+		Message: common.UserNameExist,
+		Data:    data,
+	})
+}
+
+// CreateUser
+// @Summary 新增用户
+// @Tags 用户模块
+// @param name query string false "用户名"
+// @param password query string false "密码"
+// @param repassword query string false "确认密码"
+// @Success 200 {string} json{"code","message"}
+// @Router /user/createUser [get]
+func CreateUser(ctx context.Context, c *app.RequestContext) {
+	data := vo.UserRegisterVo{}
+	err := c.BindAndValidate(&data)
+	if err != nil {
+		c.JSON(200,
+			common.Result{
+				Code:    -1,
+				Message: common.UserNamePassWordISEmpty,
+				Data:    data,
+			})
+		return
+	}
+	hlog.Info(data.Name, "  >>>>>>>>>>>  ", data.PassWord, data.Identity)
+	// 判断两次密码是否相等
+	if data.PassWord != data.Identity {
+		c.JSON(200,
+			common.Result{
+				Code:    -1,
+				Message: common.UserPasswordInconsistent,
+				Data:    data,
+			})
+		return
+	}
+	// 判断是否存在重名用户
+	user := repository.UserBasicRepo.FindByName(ctx, data.Name)
+	if user.Name != "" {
+		c.JSON(200,
+			common.Result{
+				Code:    -1,
+				Message: common.UserNameExist,
+				Data:    data,
+			})
+		return
+	}
+
+	salt := fmt.Sprintf("%06d", rand.Int31())
+	user = domain.UserBasic{}
+	copier.Copy(&user, &data)
+	user.PassWord = utils.MakePassword(user.PassWord, salt)
+	user.Salt = salt
+	user.LoginTime = time.Now()
+	user.LoginOutTime = time.Now()
+	user.HeartbeatTime = time.Now()
+	repository.UserBasicRepo.Create(ctx, user)
+	c.JSON(http.StatusOK, common.Result{
+		Code:    0,
+		Message: "注册成功",
+		Data:    user,
+	})
+}
+
+// GetUserList
+// @Summary 所有用户
+// @Tags 用户模块
+// @param name query string false "用户名"
+// @param password query string false "密码"
+// @Success 200 {string} json{"code","message"}
+// @Router /user/findUserByNameAndPwd [post]
+func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
+	data := vo.UserLoginVo{}
+	err := c.BindAndValidate(&data)
+	if err != nil {
+		c.JSON(200,
+			common.Result{
+				Code:    -1,
+				Message: common.UserNamePassWordISEmpty,
+				Data:    data,
+			})
+		return
+	}
+	hlog.Info(data.Name, data.PassWord)
+	user := models.FindUserByName(data.Name)
+	if user.Name == "" {
+		c.JSON(http.StatusOK, common.Result{
+			Code:    -1,
+			Message: common.UserISEmpty,
+			Data:    data,
+		})
+		return
+	}
+
+	flag := utils.ValidPassword(data.PassWord, user.Salt, user.PassWord)
+	if !flag {
+		c.JSON(http.StatusOK, common.Result{
+			Code:    -1,
+			Message: common.UserPasswordError,
+			Data:    data,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, common.Result{
+		Code:    0,
+		Message: common.UserLoginSucceed,
+		Data:    user,
+	})
+}
+
+// DeleteUser
+// @Summary 删除用户
+// @Tags 用户模块
+// @param id query string false "id"
+// @Success 200 {string} json{"code","message"}
+// @Router /user/deleteUser [get]
+func DeleteUser(ctx context.Context, c *app.RequestContext) {
+	// 删除所有用户缓存
+	// utils.DeleteALLFriends()
+	user := models.UserBasic{}
+	id, _ := strconv.Atoi(c.Query("id"))
+	hlog.Info("删除用户", id)
+	user.ID = uint(id)
+	//models.DeleteUser(user)
+	c.JSON(http.StatusOK, common.Result{
+		Code:    0,
+		Message: common.UserDeletedSucceed,
+		Data:    user,
+	})
+
+}
+
+// 查找所有好友，需要我们输入完整的用户名称。
+func SearchFriends(ctx context.Context, c *app.RequestContext) {
+	id, _ := strconv.Atoi(c.PostForm("userId"))
+	users := models.SearchFriend(uint(id))
+	c.JSON(http.StatusOK, common.H{
+		Code:  0,
+		Rows:  users,
+		Total: len(users),
+	})
+}
+
+// UpdateUser
+// @Summary 修改用户
+// @Tags 用户模块
+// @param id formData string false "id"
+// @param name formData string false "name"
+// @param password formData string false "password"
+// @param phone formData string false "phone"
+// @param email formData string false "email"
+// @Success 200 {string} json{"code","message"}
+// @Router /user/updateUser [post]
+func UpdateUser(ctx context.Context, c *app.RequestContext) {
+	// 删除用户缓存
+	// utils.DeleteALLFriends()
+	user_vo := vo.UserUpdate{}
+	err := c.BindAndValidate(&user_vo)
+	user := models.UserBasic{}
+	copier.Copy(&user, &user_vo)
+	if err != nil {
+		c.JSON(http.StatusOK, common.Result{
+			Code:    -1,
+			Message: common.UserParamError,
+			Data:    user,
+		})
+		return
+	}
+	hlog.Info("update :", user)
+	models.UpdateUser(user)
+	c.JSON(http.StatusOK, common.Result{
+		Code:    0,
+		Message: common.UserUpdateSucceed,
+		Data:    user,
+	})
+}
+
+// 添加好友
+func AddFriend(ctx context.Context, c *app.RequestContext) {
+	user := vo.FriendVo{}
+	// 检验数据是否合法
+	err := c.BindAndValidate(&user)
+	if err != nil {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  common.UserISEmpty,
+		})
+		return
+	}
+	code, msg := models.AddFriend(user.UserId, user.TargetName)
+	// 查找不到直接返回
+	if code == 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code: 0,
+			Data: code,
+			Msg:  msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
+}
+func FindByID(ctx context.Context, c *app.RequestContext) {
+	userId, _ := strconv.Atoi(c.PostForm("userId"))
+	data := models.FindByID(uint(userId))
+	c.JSON(http.StatusOK, common.H{
+		Code: 0,
+		Data: data,
+		Msg:  "ok",
+	})
+}
+
+// 防止跨域站点伪造请求
+var upGrader = websocket.HertzUpgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(ctx *app.RequestContext) bool {
+		return true
+	},
+}
+
+func SendMsg(ctx context.Context, c *app.RequestContext) {
+	err := upGrader.Upgrade(c, func(conn *websocket.Conn) {
+		// 关闭连接
+		defer func(ws *websocket.Conn) {
+			err := ws.Close()
+			if err != nil {
+				hlog.Info(err)
+			}
+			hlog.Info("websocket 关闭")
+		}(conn)
+		MsgHandler(ctx, conn)
+	})
+	if err != nil {
+		hlog.Info(err)
+		return
+	}
+
+}
+
+// 发送消息
+func RedisMsg(ctx context.Context, c *app.RequestContext) {
+	userIdA, _ := strconv.Atoi(c.PostForm("userIdA"))
+	userIdB, _ := strconv.Atoi(c.PostForm("userIdB"))
+	start, _ := strconv.Atoi(c.PostForm("start"))
+	end, _ := strconv.Atoi(c.PostForm("end"))
+	isRev, _ := strconv.ParseBool(c.PostForm("isRev"))
+	// 构建消息，发送给 redis，用 redis 作为消息沟通的中间件，
+	res := models.RedisMsg(int64(userIdA), int64(userIdB), int64(start), int64(end), isRev)
+	c.JSON(http.StatusOK, common.H{
+		Code:  0,
+		Rows:  "0k",
+		Total: res,
+	})
+}
+
+// 消息处理器
+func MsgHandler(ctx context.Context, ws *websocket.Conn) {
+	// 由前端控制 websocket 的关闭
+	for {
+		msg, err := utils.Subscribe(ctx, utils.PublishKey)
+		if err != nil {
+			hlog.Info(" MsgHandler 接受失败", err)
+		}
+		tm := time.Now().Format("2006-01-02 15:04:05")
+		m := fmt.Sprintf("[ws][%s]:%s", tm, msg)
+		// 写入消息
+		err = ws.WriteMessage(1, []byte(m))
+		if err != nil {
+			hlog.Error(err)
+		}
+	}
+}
+
+// 发送指定消息
+func SendUserMsg(ctx context.Context, c *app.RequestContext) {
+	models.Chat(c)
+}
+
+// 新建群
+func CreateCommunity(ctx context.Context, c *app.RequestContext) {
+	community := models.Community{}
+	err := c.BindAndValidate(&community)
+	if err != nil {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Msg:  common.UserParamError,
+		})
+	}
+	data, msg := models.CreateCommunity(community)
+	// 查找不到直接返回
+	if data == 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code: 0,
+			Data: data,
+			Msg:  msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
+}
+
+// 加载群列表
+func LoadCommunity(ctx context.Context, c *app.RequestContext) {
+	ownerId, _ := strconv.Atoi(c.PostForm("ownerId"))
+	data, msg := models.LoadCommunity(uint(ownerId))
+	// 查找不到直接返回
+	if len(data) != 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code:  0,
+			Rows:  data,
+			Total: msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
+}
+
+// 加入群 userId uint, comId uint
+func JoinGroups(ctx context.Context, c *app.RequestContext) {
+	userId, _ := strconv.Atoi(c.PostForm("userId"))
+	comId := c.PostForm("comId")
+	data, msg := models.JoinGroup(uint(userId), comId)
+	if data == 0 {
+		hlog.Info(msg)
+		c.JSON(http.StatusOK, common.H{
+			Code: 0,
+			Data: data,
+			Msg:  msg,
+		})
+	} else {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Data: nil,
+			Msg:  msg,
+		})
+	}
+}

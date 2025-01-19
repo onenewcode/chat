@@ -1,14 +1,35 @@
 package usr
 
 import (
-	"chat/biz/handler/usr"
+	"chat/models"
+	"context"
+	"net/http"
+	"strconv"
 
-	"github.com/cloudwego/hertz/pkg/app/server"
+	"github.com/cloudwego/hertz/pkg/app"
 )
 
-func RegisterPageRouter(h *server.Hertz) {
-	h.GET("/", usr.GetIndex)             // 主页
-	h.GET("/index", usr.GetIndex)        // 主页与"/"显示的界面相同
-	h.GET("/toRegister", usr.ToRegister) // 注册界面
-	h.GET("/toChat", usr.ToChat)         // 聊天主页
+// GetIndex
+// @Tags 首页
+// @Success 200 {string} welcome
+// @Router /index [get]
+func GetIndex(ctx context.Context, c *app.RequestContext) {
+	c.HTML(http.StatusOK, "index_index.html", nil)
+}
+func ToRegister(ctx context.Context, c *app.RequestContext) {
+	c.HTML(http.StatusOK, "register.html", nil)
+}
+
+// 进入聊天主页
+func ToChat(ctx context.Context, c *app.RequestContext) {
+	userId, _ := strconv.Atoi(c.Query("userId"))
+	token := c.Query("token")
+	user := models.UserBasic{}
+	user.ID = uint(userId)
+	user.Identity = token
+	c.HTML(http.StatusOK, "index.html", user)
+}
+
+func Chat(ctx context.Context, c *app.RequestContext) {
+	models.Chat(c)
 }

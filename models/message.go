@@ -76,77 +76,7 @@ var rwLocker sync.RWMutex
 
 // 需要 ：发送者ID ，接受者ID ，消息类型，发送的内容，发送类型
 func Chat(c *app.RequestContext) {
-	//1.  获取参数 并 检验 token 等合法性
-	//token := query.Get("token")
-	Id := c.Query("userId")
-	userId, _ := strconv.ParseInt(Id, 10, 64)
-	//msgType := query.Get("type")
-	//targetId := query.Get("targetId")
-	//context := query.Get("context")
-	isvalida := true //checkToke()  待补充进行校验
-	// 判断是否已有连接，已有的话直接删除，防止重建连接导致程序推出。
-	//{
-	//	rwLocker.Lock()
-	//	clientMap[userId] = node
-	//	rwLocker.Unlock()
-	//}
 
-	// 升级协议，
-	err := (&websocket.HertzUpgrader{
-		//token 校验
-		CheckOrigin: func(ctx *app.RequestContext) bool {
-			return isvalida
-		},
-	}).Upgrade(c, func(conn *websocket.Conn) {
-		//2.获取conn
-		currentTime := uint64(time.Now().Unix())
-		// 构建我们的连接节点
-		node := &Node{
-			Conn:          conn,
-			Addr:          conn.RemoteAddr().String(), //客户端地址
-			HeartbeatTime: currentTime,                //心跳时间
-			LoginTime:     currentTime,                //登录时间
-			DataQueue:     make(chan []byte, 50),
-			GroupSets:     mapset.NewSet(9),
-		}
-		//3. 用户关系 todo
-		//4. userid 跟 node绑定 并加锁
-		rwLocker.Lock()
-		clientMap[userId] = node
-		rwLocker.Unlock()
-		//if err != nil {
-		//	hlog.Info(err)
-		//	return
-		//}
-		//5.完成发送逻辑
-		go sendProc(node)
-		//6.完成接受逻辑
-		go recvProc(node)
-
-		//7.发送历史消息
-		//{
-		//	nums := ListUserId(userId)
-		//	for _, v := range *nums {
-		//		b, _ := json.Marshal(&v)
-		//		node.DataQueue <- b
-		//	}
-		//}
-		//8.加入在线用户到缓存
-		SetUserOnlineInfo("online_"+Id, []byte(node.Addr), time.Duration(config.Timeout.RedisOnlineTime)*time.Hour)
-		// 监听，应为一旦升级结束便会关闭websocket连接
-		for {
-			// 监听集合中是否有，没有就直接推出
-			_, flag := clientMap[userId]
-			if flag == false {
-				return
-			}
-			time.Sleep(1 * time.Second)
-		}
-	})
-	if err != nil {
-		hlog.Info(err)
-		return
-	}
 }
 
 // 发送信息到客户端
