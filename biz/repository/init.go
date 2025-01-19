@@ -38,7 +38,7 @@ func InitDB(c config.Config) *gorm.DB {
 		hlog.Error(err)
 		panic("failed to connect database")
 	}
-	hlog.Info(" MySQL init 。。。。")
+	hlog.Info(" MySQL init ....")
 	return db
 }
 
@@ -50,11 +50,11 @@ func initPrometheus(db *gorm.DB) {
 		RefreshInterval: 15,                          // 指标刷新频率（默认为 15 秒）
 		PushAddr:        "prometheus pusher address", // 如果配置了 `PushAddr`，则推送指标
 		StartServer:     true,                        // 启用一个 http 服务来暴露指标
-		HTTPServerPort:  8080,                        // 配置 http 服务监听端口，默认端口为 8080 （如果您配置了多个，只有第一个 `HTTPServerPort` 会被使用）
+		HTTPServerPort:  8080,                        // 配置 http 服务监听端口，默认端口为 8080（如果您配置了多个，只有第一个 `HTTPServerPort` 会被使用）
 		MetricsCollector: []prometheus.MetricsCollector{
 			&prometheus.MySQL{
 				// 指标名前缀，默认为 `gorm_status_`
-				// 例如： Threads_running 的指标名就是 `gorm_status_Threads_running`
+				// 例如：Threads_running 的指标名就是 `gorm_status_Threads_running`
 				Prefix: "gorm_status_",
 				// 拉取频率，默认使用 Prometheus 的 RefreshInterval
 				Interval: 100,

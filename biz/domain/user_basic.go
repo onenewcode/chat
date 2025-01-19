@@ -31,7 +31,7 @@ func (table *UserBasic) TableName() string {
 
 type UserBasicI interface {
 	// 注意 pageIdx<0 时，返回所有数据
-	GetUserList(ctx context.Context, name, phone, email string, pageIdx, pageSize int) *[]UserBasic
+	GetList(ctx context.Context, name, phone, email string, pageIdx, pageSize int) *[]UserBasic
 	FindByNameAndPwd(ctx context.Context, name string, password string) UserBasic
 	// 非模糊查询一般
 	FindByName(ctx context.Context, name string) UserBasic

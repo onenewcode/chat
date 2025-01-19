@@ -15,7 +15,7 @@ type userBasicRepo struct {
 	db *gorm.DB
 }
 
-func (u userBasicRepo) GetUserList(ctx context.Context, name, phone, email string, pageIdx, pageSize int) *[]domain.UserBasic {
+func (u userBasicRepo) GetList(ctx context.Context, name, phone, email string, pageIdx, pageSize int) *[]domain.UserBasic {
 	db := u.db.WithContext(ctx)
 	data := make([]domain.UserBasic, pageSize)
 	if name != "" {

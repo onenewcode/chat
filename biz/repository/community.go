@@ -18,7 +18,7 @@ func (c communityRepo) Create(ctx context.Context, community domain.Community) e
 	tx := c.db.WithContext(ctx).Begin()
 	//事务一旦开始，不论什么异常最终都会 Rollback
 	defer func() {
-		// 防止出现panic
+		// 防止出现 panic
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
@@ -40,6 +40,8 @@ func (c communityRepo) Create(ctx context.Context, community domain.Community) e
 	tx.Commit()
 	return nil
 }
+
+// TODO
 func (c communityRepo) Load(ctx context.Context, ownerId uint) (*[]domain.Community, error) {
 	db := c.db.WithContext(ctx)
 	contacts := make([]domain.Contact, 0)

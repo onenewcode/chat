@@ -2,6 +2,7 @@ package usr
 
 import (
 	"chat/biz/domain"
+	"chat/biz/handler/usr"
 	"chat/biz/repository"
 	"chat/common"
 	"chat/common/vo"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"github.com/hertz-contrib/websocket"
 	"github.com/jinzhu/copier"
 )
 
@@ -27,7 +27,7 @@ import (
 // @Success 200 {string} json{"code","message"}
 // @Router /user/getUserList [get]
 func GetUserList(ctx context.Context, c *app.RequestContext) {
-	data := repository.UserBasicRepo.GetUserList(ctx, "", "", "", -1, 10)
+	data := repository.UserBasicRepo.GetList(ctx, "", "", "", -1, 10)
 	c.JSON(http.StatusOK, common.Result{
 		Code:    0,
 		Message: common.UserNameExist,
@@ -42,7 +42,7 @@ func GetUserList(ctx context.Context, c *app.RequestContext) {
 // @param password query string false "密码"
 // @param repassword query string false "确认密码"
 // @Success 200 {string} json{"code","message"}
-// @Router /user/createUser [get]
+// @Router /user/createUser [post]
 func CreateUser(ctx context.Context, c *app.RequestContext) {
 	data := vo.UserRegisterVo{}
 	err := c.BindAndValidate(&data)
@@ -101,7 +101,7 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 // @param password query string false "密码"
 // @Success 200 {string} json{"code","message"}
 // @Router /user/findUserByNameAndPwd [post]
-func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
+func Login(ctx context.Context, c *app.RequestContext) {
 	data := vo.UserLoginVo{}
 	err := c.BindAndValidate(&data)
 	if err != nil {
@@ -114,7 +114,7 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	hlog.Info(data.Name, data.PassWord)
-	user := models.FindUserByName(data.Name)
+	user := repository.UserBasicRepo.FindByName(ctx, data.Name)
 	if user.Name == "" {
 		c.JSON(http.StatusOK, common.Result{
 			Code:    -1,
@@ -140,36 +140,67 @@ func FindUserByNameAndPwd(ctx context.Context, c *app.RequestContext) {
 	})
 }
 
-// DeleteUser
+// DeleteUser 删除用户
 // @Summary 删除用户
 // @Tags 用户模块
-// @param id query string false "id"
-// @Success 200 {string} json{"code","message"}
-// @Router /user/deleteUser [get]
+// @Accept json
+// @Produce json
+// @Param id query int true "用户 ID"
+// @Success 200 {object} common.Result{data=models.UserBasic} "成功"
+// @Failure 400 {object} common.Result "无效的请求参数"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /user/deleteUser [delete]
 func DeleteUser(ctx context.Context, c *app.RequestContext) {
 	// 删除所有用户缓存
 	// utils.DeleteALLFriends()
-	user := models.UserBasic{}
-	id, _ := strconv.Atoi(c.Query("id"))
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
+		c.JSON(http.StatusOK, common.Result{
+			Code:    -1,
+			Message: common.UserParamError,
+			Data:    nil,
+		})
+		return
+	}
 	hlog.Info("删除用户", id)
-	user.ID = uint(id)
+	repository.UserBasicRepo.Delete(ctx, uint(id))
 	//models.DeleteUser(user)
 	c.JSON(http.StatusOK, common.Result{
 		Code:    0,
 		Message: common.UserDeletedSucceed,
-		Data:    user,
+		Data:    nil,
 	})
 
 }
 
-// 查找所有好友，需要我们输入完整的用户名称。
+// SearchFriends 查找与指定用户相关的所有好友。
+// 此操作需要一个有效的用户 ID 作为查询条件，该 ID 通过 POST 请求体中的"userId"字段传递。
+// 注意：此 API 要求提供完整的用户名称（根据上下文理解，这可能是文档中的误导；实际实现中是基于用户 ID 查找）。
+// @Summary 查找所有好友
+// @Description 根据提供的用户 ID 查找该用户的所有好友。注意，这里并非使用用户名进行查找，而是用户 ID。
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param userId formData integer true "用户 ID"
+// @Success 200 {object} common.Result{data=common.PaginatedResponse{rows=[]models.UserBasic,total=int}} "成功获取好友列表"
+// @Failure 400 {object} common.Result "无效的请求参数"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /user/searchFriends [get]
 func SearchFriends(ctx context.Context, c *app.RequestContext) {
-	id, _ := strconv.Atoi(c.PostForm("userId"))
-	users := models.SearchFriend(uint(id))
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
+		c.JSON(http.StatusOK, common.Result{
+			Code:    -1,
+			Message: common.UserParamError,
+			Data:    nil,
+		})
+		return
+	}
+	users := repository.ContactRepo.SearchFriend(ctx, uint(id))
 	c.JSON(http.StatusOK, common.H{
 		Code:  0,
 		Rows:  users,
-		Total: len(users),
+		Total: len(*users),
 	})
 }
 
@@ -182,7 +213,7 @@ func SearchFriends(ctx context.Context, c *app.RequestContext) {
 // @param phone formData string false "phone"
 // @param email formData string false "email"
 // @Success 200 {string} json{"code","message"}
-// @Router /user/updateUser [post]
+// @Router /user/updateUser [put]
 func UpdateUser(ctx context.Context, c *app.RequestContext) {
 	// 删除用户缓存
 	// utils.DeleteALLFriends()
@@ -207,7 +238,17 @@ func UpdateUser(ctx context.Context, c *app.RequestContext) {
 	})
 }
 
-// 添加好友
+// AddFriend 添加好友
+// @Summary 添加好友关系
+// @Description 根据提供的用户 ID 和目标用户名创建一个新的好友关系。
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param friend body vo.FriendVo true "好友信息"
+// @Success 201 {object} common.Result "好友添加成功"
+// @Failure 400 {object} common.Result "无效的请求参数或验证失败"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /user/addFriend [post]
 func AddFriend(ctx context.Context, c *app.RequestContext) {
 	user := vo.FriendVo{}
 	// 检验数据是否合法
@@ -216,102 +257,55 @@ func AddFriend(ctx context.Context, c *app.RequestContext) {
 		c.JSON(http.StatusOK, common.H{
 			Code: -1,
 			Data: nil,
-			Msg:  common.UserISEmpty,
+			Msg:  common.UserParamError,
 		})
 		return
 	}
-	code, msg := models.AddFriend(user.UserId, user.TargetName)
+	err = repository.ContactRepo.AddFriend(ctx, user.UserId, user.TargeId)
 	// 查找不到直接返回
-	if code == 0 {
-		hlog.Info(msg)
-		c.JSON(http.StatusOK, common.H{
-			Code: 0,
-			Data: code,
-			Msg:  msg,
-		})
-	} else {
+	if err != nil {
 		c.JSON(http.StatusOK, common.H{
 			Code: -1,
 			Data: nil,
-			Msg:  msg,
+			Msg:  common.UserParamError,
 		})
+		return
 	}
+	c.JSON(http.StatusOK, common.H{
+		Code: 0,
+		Data: nil,
+		Msg:  "ok",
+	})
 }
+
+// FindByID 根据用户 ID 查找用户信息
+// @Summary 根据用户 ID 获取用户详情
+// @Description 使用用户 ID 来检索用户的详细信息。
+// @Tags 用户模块
+// @Accept json
+// @Produce json
+// @Param userId query int true "用户 ID"
+// @Success 200 {object} common.Result{data=models.UserBasic} "成功获取用户信息"
+// @Failure 400 {object} common.Result "无效的请求参数"
+// @Failure 404 {object} common.Result "找不到用户"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /user/{userId} [get]
 func FindByID(ctx context.Context, c *app.RequestContext) {
-	userId, _ := strconv.Atoi(c.PostForm("userId"))
-	data := models.FindByID(uint(userId))
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
+		c.JSON(http.StatusOK, common.Result{
+			Code:    -1,
+			Message: common.UserParamError,
+			Data:    nil,
+		})
+		return
+	}
+	data := repository.UserBasicRepo.FindByID(ctx, uint(id))
 	c.JSON(http.StatusOK, common.H{
 		Code: 0,
 		Data: data,
 		Msg:  "ok",
 	})
-}
-
-// 防止跨域站点伪造请求
-var upGrader = websocket.HertzUpgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(ctx *app.RequestContext) bool {
-		return true
-	},
-}
-
-func SendMsg(ctx context.Context, c *app.RequestContext) {
-	err := upGrader.Upgrade(c, func(conn *websocket.Conn) {
-		// 关闭连接
-		defer func(ws *websocket.Conn) {
-			err := ws.Close()
-			if err != nil {
-				hlog.Info(err)
-			}
-			hlog.Info("websocket 关闭")
-		}(conn)
-		MsgHandler(ctx, conn)
-	})
-	if err != nil {
-		hlog.Info(err)
-		return
-	}
-
-}
-
-// 发送消息
-func RedisMsg(ctx context.Context, c *app.RequestContext) {
-	userIdA, _ := strconv.Atoi(c.PostForm("userIdA"))
-	userIdB, _ := strconv.Atoi(c.PostForm("userIdB"))
-	start, _ := strconv.Atoi(c.PostForm("start"))
-	end, _ := strconv.Atoi(c.PostForm("end"))
-	isRev, _ := strconv.ParseBool(c.PostForm("isRev"))
-	// 构建消息，发送给 redis，用 redis 作为消息沟通的中间件，
-	res := models.RedisMsg(int64(userIdA), int64(userIdB), int64(start), int64(end), isRev)
-	c.JSON(http.StatusOK, common.H{
-		Code:  0,
-		Rows:  "0k",
-		Total: res,
-	})
-}
-
-// 消息处理器
-func MsgHandler(ctx context.Context, ws *websocket.Conn) {
-	// 由前端控制 websocket 的关闭
-	for {
-		msg, err := utils.Subscribe(ctx, utils.PublishKey)
-		if err != nil {
-			hlog.Info(" MsgHandler 接受失败", err)
-		}
-		tm := time.Now().Format("2006-01-02 15:04:05")
-		m := fmt.Sprintf("[ws][%s]:%s", tm, msg)
-		// 写入消息
-		err = ws.WriteMessage(1, []byte(m))
-		if err != nil {
-			hlog.Error(err)
-		}
-	}
-}
-
-// 发送指定消息
-func SendUserMsg(ctx context.Context, c *app.RequestContext) {
-	models.Chat(c)
 }
 
 // 新建群
@@ -342,28 +336,67 @@ func CreateCommunity(ctx context.Context, c *app.RequestContext) {
 	}
 }
 
-// 加载群列表
+// LoadCommunity 加载用户所属的群列表。
+// @Summary 加载用户所属的群列表
+// @Description 根据提供的用户 ID 加载该用户所拥有的或加入的所有群组信息。
+// @Tags 群组模块
+// @Accept json
+// @Produce json
+// @Param ownerId query int true "所有者的用户 ID"
+// @Success 200 {object} common.Result{data=common.PaginatedResponse{rows=[]models.Community,total=int}} "成功获取群列表"
+// @Failure 400 {object} common.Result "无效的请求参数"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /community/load/:ownerId [get]
 func LoadCommunity(ctx context.Context, c *app.RequestContext) {
-	ownerId, _ := strconv.Atoi(c.PostForm("ownerId"))
-	data, msg := models.LoadCommunity(uint(ownerId))
-	// 查找不到直接返回
-	if len(data) != 0 {
-		hlog.Info(msg)
-		c.JSON(http.StatusOK, common.H{
-			Code:  0,
-			Rows:  data,
-			Total: msg,
-		})
-	} else {
+	id, err := strconv.ParseUint(c.Param("ownerId"), 10, 64)
+	if err != nil {
 		c.JSON(http.StatusOK, common.H{
 			Code: -1,
-			Data: nil,
-			Msg:  msg,
+			Msg:  common.UserParamError,
 		})
 	}
+	data, err := repository.CommunityRepo.Load(ctx, uint(id))
+	if err != nil {
+		c.JSON(http.StatusOK, common.H{
+			Code: -1,
+			Msg:  common.UserParamError,
+		})
+	}
+	c.JSON(http.StatusOK, common.H{
+		Code:  0,
+		Rows:  data,
+		Total: "ok",
+	})
 }
 
-// 加入群 userId uint, comId uint
+// SendMsg 向指定群组发送消息。
+// @Summary 向指定群组发送消息
+// @Description 根据上下文和请求内容向特定群组发送一条消息。
+// @Tags 消息模块
+// @Accept json
+// @Produce json
+// @Param message body vo.MessageVo true "消息内容"
+// @Success 200 {object} common.Result "消息发送成功"
+// @Failure 400 {object} common.Result "无效的请求参数"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /message/send [post]
+func SendMsg(ctx context.Context, c *app.RequestContext) {
+	usr.SendMsg(ctx, c)
+}
+
+// TODO
+// JoinGroups 用户加入指定群组。
+// @Summary 用户加入指定群组
+// @Description 根据提供的用户 ID 和群组 ID 将用户加入到指定的群组中。
+// @Tags 群组模块
+// @Accept json
+// @Produce json
+// @Param userId formData integer true "用户 ID"
+// @Param comId formData string true "群组 ID"
+// @Success 201 {object} common.Result "成功加入群组"
+// @Failure 400 {object} common.Result "无效的请求参数"
+// @Failure 500 {object} common.Result "服务器内部错误"
+// @Router /group/join [post]
 func JoinGroups(ctx context.Context, c *app.RequestContext) {
 	userId, _ := strconv.Atoi(c.PostForm("userId"))
 	comId := c.PostForm("comId")
@@ -382,4 +415,27 @@ func JoinGroups(ctx context.Context, c *app.RequestContext) {
 			Msg:  msg,
 		})
 	}
+}
+
+// TODO
+// 发送消息
+func RedisMsg(ctx context.Context, c *app.RequestContext) {
+	userIdA, _ := strconv.Atoi(c.PostForm("userIdA"))
+	userIdB, _ := strconv.Atoi(c.PostForm("userIdB"))
+	start, _ := strconv.Atoi(c.PostForm("start"))
+	end, _ := strconv.Atoi(c.PostForm("end"))
+	isRev, _ := strconv.ParseBool(c.PostForm("isRev"))
+	// 构建消息，发送给 redis，用 redis 作为消息沟通的中间件，
+	res := models.RedisMsg(int64(userIdA), int64(userIdB), int64(start), int64(end), isRev)
+	c.JSON(http.StatusOK, common.H{
+		Code:  0,
+		Rows:  "0k",
+		Total: res,
+	})
+}
+
+// TODO
+// 发送指定消息
+func SendUserMsg(ctx context.Context, c *app.RequestContext) {
+	models.Chat(c)
 }
