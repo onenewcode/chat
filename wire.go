@@ -11,6 +11,7 @@ import (
 
 var InitConfigSet = wire.NewSet(config.InitConfig, config.ConfigPath)
 
+// 初始化所有关于数据库的依赖
 func Initialize() error {
 	wire.Build(initDB, InitConfigSet)
 	return nil

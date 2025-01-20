@@ -14,8 +14,9 @@ import (
 )
 
 func initALL() {
-	Initialize()
-
+	// Initialize()
+	// 初始化链路追踪
+	// initOpentelemetry("chat")
 }
 func initOpentelemetry(serviceName string) {
 	p := provider.NewOpenTelemetryProvider(
@@ -36,7 +37,7 @@ func initSwagger(h *server.Hertz) {
 
 // @title chat
 // @version 1.0
-// @description 这是一个用于hertz的聊天服务
+// @description 这是一个用于 hertz 的聊天服务
 
 // @contact.name onenewcode
 // @contact.url  https://github.com/onenewcode/chat.git
@@ -48,8 +49,7 @@ func initSwagger(h *server.Hertz) {
 // @BasePath /
 // @schemes http
 func main() {
-	// initOpentelemetry("chat")
-	// 初始化链路追踪
+	initALL()
 	tracer, cfg := hertztracing.NewServerTracer()
 
 	h := server.New(
@@ -58,9 +58,9 @@ func main() {
 	)
 	h.Use(hertztracing.ServerMiddleware(cfg))
 
-	// 注册swagger
+	// 注册 swagger
 	initSwagger(h)
-	// 注册路由
+	//注册路由
 	router.RegisterRouter(h)
 	h.Use(recovery.Recovery()) // 可确保即使在处理请求过程中发生未预期的错误或异常，服务也能维持运行状态
 	h.Spin()
