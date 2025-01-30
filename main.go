@@ -14,7 +14,7 @@ import (
 )
 
 func initALL() {
-	// Initialize()
+	Initialize()
 	// 初始化链路追踪
 	// initOpentelemetry("chat")
 }

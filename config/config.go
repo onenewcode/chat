@@ -42,7 +42,7 @@ type port struct {
 	Udp    int
 }
 
-// 初始化一个配置类，让viper读取指定的配置文件
+// 初始化一个配置类，让 viper 读取指定的配置文件
 func ConfigPath() *viper.Viper {
 	vp := viper.New()
 	vp.SetConfigName("app")
@@ -56,12 +56,11 @@ func ConfigPath() *viper.Viper {
 	return vp
 }
 
-// 初始化配置，把所有的数据读取后放入global的全局变量中
+// 初始化配置，把所有的数据读取后放入 global 的全局变量中
 func InitConfig(vp *viper.Viper) Config {
 	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := vp.Unmarshal(&config); err != nil {
 		fmt.Printf("解析字段失败, %v", err)
 	}
-	GlobalConfig = config
 	return config
 }

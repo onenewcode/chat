@@ -1,44 +1,45 @@
 version: "3"
 services:
-  db:
+  mysql: # 服务名称
     image: mysql:8.0
-    container_name: mysql_db # 容器名称
-    environment:
-      MYSQL_ROOT_PASSWORD: root # 初始化root密码
-      MYSQL_DATABASE: todo #初始化数据名称
+    container_name: chat_db # 容器名称
+    environment: # 环境变量
+      MYSQL_ROOT_PASSWORD: root # 初始化 root 密码
+      MYSQL_DATABASE: chat #初始化数据名称
     ports:
-      - "3306:3306"
+      - "3306:3306" # 端口映射
     volumes:
-      - db_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # - db_data:/var/lib/mysql # 使用名为 db_data 的数据卷来存储 MySQL 数据库的数据文件，确保数据在容器销毁后仍然存在。
+      - ./sql/ginchat.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - work
+      - chat
     healthcheck: # 设置健康检查
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 30s
-      retries: 3
+      interval: 10s # 检查间隔
+      timeout: 30s # 超时时间
+      retries: 3 # 重试次数
   redis:
+    container_name: chat_redis # 容器名称
     image: redis:7.2.4
     ports:
       - "6379:6379"
     command: ["redis-server"]
     networks:
-      - work
+      - chat
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 30s
       retries: 3
-  nacos:
-    image: nacos/nacos-server:latest
-    container_name: nacos_container
-    environment:
-      - MODE=standalone
-    ports:
-      - "8848:8848"
-    networks:
-      - work
+  # nacos:
+  #   image: nacos/nacos-server:latest
+  #   container_name: nacos_container
+  #   environment:
+  #     - MODE=standalone
+  #   ports:
+  #     - "8848:8848"
+  #   networks:
+  #     - work
 networks:
   chat:
     external: false

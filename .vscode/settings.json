@@ -58,5 +58,20 @@
 },
     "git.untrackedChanges": "separate",
 
-    "git.alwaysShowStagedChangesResourceGroup": true
+    "git.alwaysShowStagedChangesResourceGroup": true,
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "chat",
+            "database": "chat",
+            "username": "root"
+        }
+    ]
 }

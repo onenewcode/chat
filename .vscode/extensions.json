@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+      "mtxr.sqltools-driver-mysql", // mysql 驱动
+      "mtxr.sqltools", //  sqltools 拓展 
+      "redis.redis-for-vscode", // redis 支持
+      "golang.go" // go 支持
+    ],
+    "unwantedRecommendations": [
+      "example.unwanted-extension" // 你不想推荐的某个扩展
+    ]
+  }
