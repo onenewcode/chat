@@ -2,6 +2,7 @@ package main
 
 import (
 	"chat/biz/router"
+	"chat/config"
 	_ "chat/docs" // swagger docs
 	"context"
 
@@ -53,7 +54,7 @@ func main() {
 	tracer, cfg := hertztracing.NewServerTracer()
 
 	h := server.New(
-		// server.WithHostPorts(config.Port.Server),
+		server.WithHostPorts(config.GlobalConfig.Port.Server),
 		tracer,
 	)
 	h.Use(hertztracing.ServerMiddleware(cfg))

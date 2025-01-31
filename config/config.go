@@ -62,5 +62,6 @@ func InitConfig(vp *viper.Viper) Config {
 	if err := vp.Unmarshal(&config); err != nil {
 		fmt.Printf("解析字段失败, %v", err)
 	}
+	GlobalConfig = config
 	return config
 }
