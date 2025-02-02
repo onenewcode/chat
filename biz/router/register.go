@@ -2,6 +2,7 @@ package router
 
 import (
 	"chat/biz/handler"
+	"chat/biz/router/common"
 	"chat/biz/router/home"
 	"chat/biz/router/usr"
 
@@ -11,10 +12,6 @@ import (
 func RegisterRouter(h *server.Hertz) {
 	// 注册测试 swagger 路由
 	h.GET("/ping", handler.PingHandler)
-
-	//swagger
-	//docs.SwaggerInfo.BasePath = ""
-	//r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// 设置全局的缓存过期时间（会被更细粒度的设置覆盖）
 	// my_cache := cache.NewCacheByRequestURI(utils.RedisStore, 2*time.Hour)
@@ -37,33 +34,34 @@ func RegisterRouter(h *server.Hertz) {
 		// 查找所有好友
 		// h.POST("/searchFriends", my_cache, service.SearchFriends)
 	}
-	// users := h.Group("/user")
-	// {
-	// 	users.POST("/getUserList", my_cache, service.GetUserList)         // 获取所有用户
-	// 	users.POST("/createUser", service.CreateUser)                     //创建新用户
-	// 	users.POST("/deleteUser", service.DeleteUser)                     // 删除用户
-	// 	users.POST("/findUserByNameAndPwd", service.FindUserByNameAndPwd) //根据用户名查找用户
-	// 	users.POST("/updateUser", service.UpdateUser)                     //更新用户数据
-	// 	users.POST("/find", service.FindByID)                             // 根据用户 id 查找用户
-	// 	//发送消息 群发
-	// 	users.GET("/sendMsg", service.SendMsg)
-	// 	//发送消息
-	// 	users.GET("/sendUserMsg", service.SendUserMsg)
-	// 	// 消息存在 redis 中，现在
-	// 	users.POST("/redisMsg", service.RedisMsg)
-	// }
-	// // 群聊信息
-	// contact := h.Group("/contact")
-	// {
-	// 	//添加好友
-	// 	contact.POST("/addfriend", service.AddFriend)
-	// 	//群列表
-	// 	contact.POST("/loadcommunity", service.LoadCommunity)
-	// 	// 创建群
-	// 	contact.POST("/createCommunity", service.CreateCommunity)
-	// 	// 添加如群
-	// 	contact.POST("/joinGroup", service.JoinGroups)
-	// }
+	users := h.Group("/user")
+	{
+		users.POST("/login", usr.Login) //根据用户名查找用户
+		// users.POST("/getUserList", my_cache, service.GetUserList)         // 获取所有用户
+		users.POST("/createUser", usr.CreateUser) //创建新用户
+		users.POST("/deleteUser", usr.DeleteUser) // 删除用户
+
+		users.POST("/updateUser", usr.UpdateUser) //更新用户数据
+		users.POST("/find", usr.FindByID)         // 根据用户 id 查找用户
+		//发送消息 群发
+		users.GET("/sendMsg", usr.SendMsg)
+		//发送消息
+		users.GET("/sendUserMsg", usr.SendUserMsg)
+		// // 消息存在 redis 中，现在
+		users.POST("/redisMsg", usr.RedisMsg)
+	}
+	// 群聊信息
+	contact := h.Group("/contact")
+	{
+		//添加好友
+		contact.POST("/addfriend", usr.AddFriend)
+		//群列表
+		contact.POST("/loadcommunity", usr.LoadCommunity)
+		// 创建群
+		contact.POST("/createCommunity", usr.CreateCommunity)
+		// 添加如群
+		contact.POST("/joinGroup", usr.JoinGroups)
+	}
 	// //上传文件
-	// h.POST("/attach/upload", service.Upload)
+	h.POST("/attach/upload", common.Upload)
 }

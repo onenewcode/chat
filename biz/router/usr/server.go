@@ -95,12 +95,12 @@ func CreateUser(ctx context.Context, c *app.RequestContext) {
 }
 
 // GetUserList
-// @Summary 所有用户
+// @Summary 用户登录
 // @Tags 用户模块
 // @param name query string false "用户名"
 // @param password query string false "密码"
 // @Success 200 {string} json{"code","message"}
-// @Router /user/findUserByNameAndPwd [post]
+// @Router /user/login[post]
 func Login(ctx context.Context, c *app.RequestContext) {
 	data := vo.UserLoginVo{}
 	err := c.BindAndValidate(&data)

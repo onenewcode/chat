@@ -53,14 +53,14 @@
                 //检测密码是否为空
 
                 //网络请求
-                //封装了promis
+                //封装了 promis
                 util.post("user/login",this.user).then(res=>{
                     console.log(res)
                     if(res.code!=0){
                         mui.toast(res.msg)
                     }else{
                         //location.replace("//127.0.0.1/demo/index.shtml")
-                        mui.toast("登录成功,即将跳转")
+                        mui.toast("登录成功，即将跳转")
                     }
                 })
             },

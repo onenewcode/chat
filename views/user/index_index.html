@@ -47,9 +47,14 @@
                 console.log("login")
                 //检测密码是否为空
 
+            // 检测密码是否为空
+            if (!this.user.password||!this.user.name) {
+                mui.toast('账户或者密码不能为空');
+                return; // 停止执行后续代码
+            }
                 //网络请求
-                //封装了promis
-                util.post("user/findUserByNameAndPwd",this.user).then(res=>{
+                //封装了 promis
+                util.post("user/login",this.user).then(res=>{
                     console.log(res)
                     if(res.code!=0){
                         mui.toast(res.message)
@@ -57,7 +62,7 @@
                         var url = "/toChat?userId="+res.data.ID+"&token="+res.data.Identity
                         userInfo(res.data)
                         userId(res.data.ID)
-                        mui.toast("登录成功,即将跳转")
+                        mui.toast("登录成功，即将跳转")
                         location.href = url
                     }
                 })
