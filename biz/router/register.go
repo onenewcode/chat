@@ -15,6 +15,7 @@ func RegisterRouter(h *server.Hertz) {
 
 	// 设置全局的缓存过期时间（会被更细粒度的设置覆盖）
 	// my_cache := cache.NewCacheByRequestURI(utils.RedisStore, 2*time.Hour)
+
 	//静态资源
 	h.Static("/asset", ".")
 	// 为单个文件提供映射
@@ -32,14 +33,13 @@ func RegisterRouter(h *server.Hertz) {
 		h.GET("/toChat", usr.ToChat) // 聊天主页
 		h.GET("/chat", usr.Chat)
 		// 查找所有好友
-		// h.POST("/searchFriends", my_cache, service.SearchFriends)
+		h.POST("/searchFriends", usr.SearchFriends)
 	}
 	users := h.Group("/user")
 	{
-		users.POST("/login", usr.Login) //根据用户名查找用户
-		// users.POST("/getUserList", my_cache, service.GetUserList)         // 获取所有用户
-		users.POST("/createUser", usr.CreateUser) //创建新用户
-		users.POST("/deleteUser", usr.DeleteUser) // 删除用户
+		users.POST("/login", usr.Login)            //根据用户名查找用户
+		users.POST("/getUserList", usr.CreateUser) //创建新用户
+		users.POST("/deleteUser", usr.DeleteUser)  // 删除用户
 
 		users.POST("/updateUser", usr.UpdateUser) //更新用户数据
 		users.POST("/find", usr.FindByID)         // 根据用户 id 查找用户
